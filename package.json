@@ -11,7 +11,15 @@
     "migration:generate": "npm run typeorm -- migration:generate -d src/config/database.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/config/database.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/database.ts",
-    "create-admin": "ts-node scripts/create-admin.ts"
+    "create-admin": "ts-node scripts/create-admin.ts",
+    "view-config": "./view-config.sh",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d --build",
+    "docker:prod": "docker compose up -d --build",
+    "docker:down": "docker compose -f docker-compose.dev.yml down && docker compose down",
+    "docker:logs": "docker compose logs -f api",
+    "docker:logs:dev": "docker compose -f docker-compose.dev.yml logs -f api",
+    "docker:status": "docker compose ps && docker compose -f docker-compose.dev.yml ps",
+    "docker:start": "./docker-start.sh"
   },
   "keywords": [
     "bookmate",
@@ -26,6 +34,8 @@
     "cors": "*",
     "dotenv": "*",
     "express": "*",
+    "express-rate-limit": "*",
+    "helmet": "*",
     "jsonwebtoken": "*",
     "multer": "^2.0.2",
     "pg": "*",
@@ -39,6 +49,7 @@
     "@types/bcrypt": "*",
     "@types/cors": "*",
     "@types/express": "*",
+    "@types/express-rate-limit": "*",
     "@types/jsonwebtoken": "*",
     "@types/multer": "^2.0.0",
     "@types/node": "*",

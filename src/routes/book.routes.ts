@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { BookController } from '../controllers/book.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { adminMiddleware } from '../middleware/admin.middleware';
+import { uploadLimiter } from '../middleware/security.middleware';
 import { upload } from '../utils/fileUpload';
 
 const router = Router();
@@ -92,7 +93,7 @@ router.get('/:id', bookController.getBookById);
  *       403:
  *         description: Admin access required
  */
-router.post('/', authMiddleware, adminMiddleware, upload.single('coverImage'), bookController.createBook);
+router.post('/', authMiddleware, adminMiddleware, uploadLimiter, upload.single('coverImage'), bookController.createBook);
 
 /**
  * @swagger
@@ -138,7 +139,7 @@ router.post('/', authMiddleware, adminMiddleware, upload.single('coverImage'), b
  *       404:
  *         description: Book not found
  */
-router.put('/:id', authMiddleware, adminMiddleware, upload.single('coverImage'), bookController.updateBook);
+router.put('/:id', authMiddleware, adminMiddleware, uploadLimiter, upload.single('coverImage'), bookController.updateBook);
 
 /**
  * @swagger

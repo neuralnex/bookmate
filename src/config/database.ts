@@ -5,6 +5,12 @@ import { Book } from '../entities/Book';
 import { Order } from '../entities/Order';
 import { OrderItem } from '../entities/OrderItem';
 
+// Determine if SSL is needed (for cloud databases like Render.com)
+const needsSSL = config.database.url.includes('render.com') || 
+                 config.database.url.includes('amazonaws.com') ||
+                 config.database.url.includes('azure.com') ||
+                 process.env.DATABASE_SSL === 'true';
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: config.database.url,
@@ -13,9 +19,11 @@ export const AppDataSource = new DataSource({
   entities: [User, Book, Order, OrderItem],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: ['src/subscribers/**/*.ts'],
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ...(needsSSL && {
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  }),
 });
 
 export const initializeDatabase = async (): Promise<void> => {
