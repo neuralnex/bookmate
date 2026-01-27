@@ -1,21 +1,30 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import { config } from '../config/env';
+import path from 'path';
+
+const isProduction = config.nodeEnv === 'production';
+const routesPattern = isProduction
+  ? path.join(process.cwd(), 'dist', 'routes', '*.js')
+  : path.join(process.cwd(), 'src', 'routes', '*.ts');
 
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'BOOKMATE API',
+      title: 'FUBOOKS API',
       version: '1.0.0',
-      description: 'Backend API for BOOKMATE - Book ordering system',
+      description: 'Backend API for FUBOOKS - Book ordering system',
       contact: {
         name: 'API Support',
+        email: 'support@fubooks.com',
       },
     },
     servers: [
       {
-        url: `http://localhost:${config.port}`,
-        description: 'Development server',
+        url: config.nodeEnv === 'production'
+          ? process.env.API_URL || `http://localhost:${config.port}`
+          : `http://localhost:${config.port}`,
+        description: config.nodeEnv === 'production' ? 'Production server' : 'Development server',
       },
     ],
     components: {
@@ -24,14 +33,10 @@ const options: swaggerJsdoc.Options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
+          description: 'Enter JWT token obtained from /auth/login',
         },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
     tags: [
       {
         name: 'Auth',
@@ -55,8 +60,10 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
+  apis: [routesPattern],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
+
+
 

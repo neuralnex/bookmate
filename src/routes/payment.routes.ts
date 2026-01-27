@@ -101,41 +101,10 @@ const paymentController = new PaymentController();
  *       400:
  *         description: Order already paid or invalid order
  */
-router.post('/initiate-cashier', authMiddleware, paymentController.initiateCashierPayment);
-
 router.post('/initiate', authMiddleware, paymentController.initiatePayment);
 
-/**
- * @swagger
- * /payments/verify:
- *   post:
- *     summary: Verify payment (Payment gateway callback)
- *     tags: [Payments]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - orderId
- *               - paymentReference
- *               - status
- *             properties:
- *               orderId:
- *                 type: string
- *                 format: uuid
- *               paymentReference:
- *                 type: string
- *               status:
- *                 type: string
- *                 enum: [success, failed]
- *     responses:
- *       200:
- *         description: Payment verified successfully
- *       400:
- *         description: Invalid payment data
- */
+router.post('/initiate-cashier', authMiddleware, paymentController.initiateCashierPayment);
+
 /**
  * @swagger
  * /payments/callback:
@@ -228,6 +197,37 @@ router.get('/status/:reference', paymentController.queryPaymentStatus);
  */
 router.post('/cancel', authMiddleware, paymentController.cancelPayment);
 
+/**
+ * @swagger
+ * /payments/verify:
+ *   post:
+ *     summary: Verify payment (Payment gateway callback)
+ *     tags: [Payments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *               - paymentReference
+ *               - status
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 format: uuid
+ *               paymentReference:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum: [success, failed]
+ *     responses:
+ *       200:
+ *         description: Payment verified successfully
+ *       400:
+ *         description: Invalid payment data
+ */
 router.post('/verify', paymentController.verifyPayment);
 
 export default router;

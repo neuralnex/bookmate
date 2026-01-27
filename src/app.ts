@@ -45,15 +45,23 @@ app.use(express.urlencoded(securityConfig.bodyParser.urlencoded));
 // Input sanitization
 app.use(sanitizeInput);
 
+// Swagger Documentation (before rate limiting to avoid issues)
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'FUBOOKS API Documentation',
+    customfavIcon: '/favicon.ico',
+  })
+);
+
 // Global rate limiting
 app.use(apiLimiter);
 
-// Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 // Health check
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', message: 'BOOKMATE API is running' });
+  res.json({ status: 'ok', message: 'FUBOOKS API is running' });
 });
 
 // API Routes with specific rate limiters
