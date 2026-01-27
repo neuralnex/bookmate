@@ -26,7 +26,7 @@ export const securityConfig = {
       },
     },
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' as const },
   },
 
   // CORS configuration
