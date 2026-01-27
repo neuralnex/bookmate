@@ -41,12 +41,15 @@ jobs:
         run: npm test || echo "Tests not configured, skipping..."
 
       - name: Install frontend dependencies
+        if: hashFiles('frontend/package.json') != ''
         run: cd frontend && npm ci
 
       - name: Frontend type check
+        if: hashFiles('frontend/package.json') != ''
         run: cd frontend && npm run type-check
 
       - name: Frontend build
+        if: hashFiles('frontend/package.json') != ''
         run: cd frontend && npm run build
 
   # Build Docker Image
