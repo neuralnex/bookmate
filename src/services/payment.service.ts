@@ -198,25 +198,24 @@ export class PaymentService {
   }
 
   async handleCallback(reference: string, orderNo: string, status: string): Promise<void> {
-    // Find order by payment reference
     const order = await this.orderService.getOrderByPaymentReference(reference);
 
     if (!order) {
       throw new Error('Order not found');
     }
 
-    // Map OPay status to our payment status
-    let paymentStatus: PaymentStatus = 'pending';
+    if (order.paymentStatus === 'paid') {
+      return;
+    }
+
     if (status === 'SUCCESS') {
-      paymentStatus = 'paid';
       await this.orderService.updatePaymentStatus(order.id, 'paid');
       await this.orderService.updateOrderStatus(order.id, 'purchased');
+      await this.orderService.decrementStockForOrder(order.id);
     } else if (status === 'FAIL' || status === 'CLOSE') {
-      paymentStatus = 'failed';
       await this.orderService.updatePaymentStatus(order.id, 'failed');
     }
 
-    // Update OPay order number if not set
     if (!order.opayOrderNo && orderNo) {
       await this.orderService.updateOrder(order.id, { opayOrderNo: orderNo });
     }
@@ -343,9 +342,14 @@ export class PaymentService {
     // In production, use handleCallback from webhook
     const order = await this.orderService.getOrderById(orderId);
 
+    if (order.paymentStatus === 'paid') {
+      return;
+    }
+
     if (status === 'success') {
       await this.orderService.updatePaymentStatus(orderId, 'paid');
       await this.orderService.updateOrderStatus(orderId, 'purchased');
+      await this.orderService.decrementStockForOrder(orderId);
     } else {
       await this.orderService.updatePaymentStatus(orderId, 'failed');
     }

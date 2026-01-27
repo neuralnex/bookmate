@@ -115,6 +115,17 @@ export class OrderService {
     return this.orderRepository.update(id, { paymentStatus });
   }
 
+  async decrementStockForOrder(orderId: string): Promise<void> {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    for (const item of order.orderItems) {
+      await this.bookRepository.decrementStock(item.bookId, item.quantity);
+    }
+  }
+
   async getOrderByPaymentReference(paymentReference: string): Promise<Order> {
     const order = await this.orderRepository.findByPaymentReference(paymentReference);
     if (!order) {

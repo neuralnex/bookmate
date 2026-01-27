@@ -41,6 +41,17 @@ export class BookRepository {
     await this.repository.delete(id);
   }
 
+  async decrementStock(id: string, quantity: number): Promise<void> {
+    const book = await this.findById(id);
+    if (!book) {
+      throw new Error('Book not found');
+    }
+    if (book.stock < quantity) {
+      throw new Error(`Insufficient stock for book: ${book.title}`);
+    }
+    await this.repository.update(id, { stock: book.stock - quantity });
+  }
+
   async findByIds(ids: string[]): Promise<Book[]> {
     if (ids.length === 0) return [];
     return this.repository.find({
