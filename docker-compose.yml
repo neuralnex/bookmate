@@ -57,6 +57,22 @@ services:
       retries: 3
       start_period: 40s
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    container_name: bookmate-frontend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - bookmate-network
+    restart: unless-stopped
+
 networks:
   bookmate-network:
     driver: bridge
