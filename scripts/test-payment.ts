@@ -6,11 +6,11 @@ import { config } from '../src/config/env';
 const testOPayConnection = async () => {
   try {
     await initializeDatabase();
-    console.log('✅ Database connected\n');
+    console.log('Database connected\n');
 
     // Check if OPay credentials are set
     if (!config.opay.merchantId || !config.opay.publicKey || !config.opay.secretKey) {
-      console.error('❌ Error: OPay credentials not found in environment variables');
+      console.error('Error: OPay credentials not found in environment variables');
       console.log('\nPlease ensure these are set in your .env file:');
       console.log('  OPAY_MERCHANT_ID=your-merchant-id');
       console.log('  OPAY_PUBLIC_KEY=your-public-key (for payment creation)');
@@ -30,7 +30,7 @@ const testOPayConnection = async () => {
     const opayService = new OPayService();
 
     // Test 1: OPay Cashier (Express Checkout) - Recommended
-    console.log('🧪 Test 1: Testing OPay Cashier (Express Checkout)...\n');
+    console.log('Test 1: Testing OPay Cashier (Express Checkout)...\n');
     
     const testCashierReference = `CASHIER-${Date.now()}`;
     const testCashierPayment = {
@@ -65,23 +65,23 @@ const testOPayConnection = async () => {
     console.log('\n');
 
     if (cashierResponse.code === '00000') {
-      console.log('✅ SUCCESS: Cashier payment created successfully!');
+      console.log('SUCCESS: Cashier payment created successfully!');
       if (cashierResponse.data) {
         console.log(`  Reference: ${cashierResponse.data.reference}`);
         console.log(`  Order No: ${cashierResponse.data.orderNo}`);
         console.log(`  Status: ${cashierResponse.data.status}`);
         if (cashierResponse.data.cashierUrl) {
           console.log(`  Cashier URL: ${cashierResponse.data.cashierUrl}`);
-          console.log('\n  👉 Redirect user to this URL to complete payment');
+          console.log('\n  Redirect user to this URL to complete payment');
         }
       }
     } else {
-      console.log(`❌ FAILED: ${cashierResponse.message}`);
+      console.log(`FAILED: ${cashierResponse.message}`);
       console.log(`  Error Code: ${cashierResponse.code}`);
     }
 
     // Test 2: ReferenceCode payment (Server-to-Server)
-    console.log('\n\n🧪 Test 2: Testing ReferenceCode Payment (Server-to-Server)...\n');
+    console.log('\n\nTest 2: Testing ReferenceCode Payment (Server-to-Server)...\n');
     
     const testReference = `TEST-${Date.now()}`;
     const testPayment = {
@@ -118,7 +118,7 @@ const testOPayConnection = async () => {
     console.log('\n');
 
     if (response.code === '00000') {
-      console.log('✅ SUCCESS: Payment created successfully!');
+      console.log('SUCCESS: Payment created successfully!');
       if (response.data) {
         console.log(`  Reference: ${response.data.reference}`);
         console.log(`  Order No: ${response.data.orderNo}`);
@@ -128,25 +128,25 @@ const testOPayConnection = async () => {
         }
       }
     } else {
-      console.log(`❌ FAILED: ${response.message}`);
+      console.log(`FAILED: ${response.message}`);
       console.log(`  Error Code: ${response.code}`);
     }
 
     // Test 2: Query payment status
     if (response.code === '00000' && response.data) {
-      console.log('\n🧪 Test 2: Querying Payment Status...\n');
+      console.log('\nTest 2: Querying Payment Status...\n');
       const statusResponse = await opayService.queryPaymentStatus(testReference);
       console.log('Status Response:', JSON.stringify(statusResponse, null, 2));
       
       if (statusResponse.code === '00000') {
-        console.log('\n✅ SUCCESS: Payment status queried successfully!');
+        console.log('\nSUCCESS: Payment status queried successfully!');
       } else {
-        console.log(`\n❌ FAILED: ${statusResponse.message}`);
+        console.log(`\nFAILED: ${statusResponse.message}`);
       }
     }
 
   } catch (error) {
-    console.error('\n❌ Error:', error);
+    console.error('\nError:', error);
     if (error instanceof Error) {
       console.error('  Message:', error.message);
       console.error('  Stack:', error.stack);

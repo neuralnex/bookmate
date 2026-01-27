@@ -62,7 +62,7 @@ const createAdmin = async (): Promise<void> => {
       role: 'admin',
     });
 
-    console.log('\n✅ Admin user created successfully!');
+    console.log('\nAdmin user created successfully!');
     console.log('\nAdmin Details:');
     console.log(`  ID: ${admin.id}`);
     console.log(`  Name: ${admin.name}`);
