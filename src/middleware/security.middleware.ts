@@ -3,56 +3,47 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { securityConfig } from '../config/security';
 
-// Apply Helmet security headers
 export const helmetMiddleware = helmet(securityConfig.helmet);
 
-// General API rate limiter
 export const apiLimiter = rateLimit({
   ...securityConfig.rateLimit,
   skip: (req: Request) => {
-    // Skip rate limiting for health checks
     return req.path === '/health';
   },
 });
 
-// Stricter rate limiter for authentication endpoints
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // Don't count successful requests
+  skipSuccessfulRequests: true,
 });
 
-// Rate limiter for payment endpoints
 export const paymentLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: 'Too many payment requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Rate limiter for file uploads
 export const uploadLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // 20 uploads per hour
+  windowMs: 60 * 60 * 1000,
+  max: 20,
   message: 'Too many file uploads, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Input sanitization middleware
 export const sanitizeInput = (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
-  // Recursively sanitize object
+  ): void => {
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {
-      // Remove potentially dangerous characters
       return obj
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
         .replace(/javascript:/gi, '')
@@ -87,7 +78,6 @@ export const sanitizeInput = (
   next();
 };
 
-// Request ID middleware for tracking
 export const requestIdMiddleware = (
   req: Request,
   res: Response,
@@ -99,7 +89,6 @@ export const requestIdMiddleware = (
   next();
 };
 
-// Security headers middleware
 export const securityHeadersMiddleware = (
   req: Request,
   res: Response,
@@ -116,7 +105,6 @@ export const securityHeadersMiddleware = (
   next();
 };
 
-// IP whitelist middleware (optional - for admin endpoints)
 export const ipWhitelistMiddleware = (allowedIPs: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const clientIP = req.ip || req.socket.remoteAddress || '';

@@ -1,16 +1,14 @@
 import { config } from './env';
 
 export const securityConfig = {
-  // Rate limiting configuration
   rateLimit: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: config.nodeEnv === 'production' ? 100 : 1000, // requests per window
+    windowMs: 15 * 60 * 1000,
+    max: config.nodeEnv === 'production' ? 100 : 1000,
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
   },
 
-  // Helmet security headers
   helmet: {
     contentSecurityPolicy: {
       directives: {
@@ -29,7 +27,6 @@ export const securityConfig = {
     crossOriginResourcePolicy: { policy: 'cross-origin' as const },
   },
 
-  // CORS configuration
   cors: {
     origin: config.cors.origin === '*' ? true : config.cors.origin.split(','),
     credentials: true,
@@ -39,7 +36,6 @@ export const securityConfig = {
     maxAge: 86400, // 24 hours
   },
 
-  // Request size limits
   bodyParser: {
     json: {
       limit: '10mb',
@@ -52,10 +48,8 @@ export const securityConfig = {
     },
   },
 
-  // Trust proxy (for rate limiting behind reverse proxy)
-  trustProxy: config.nodeEnv === 'production',
+  trustProxy: true,
 
-  // Security headers
   securityHeaders: {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
