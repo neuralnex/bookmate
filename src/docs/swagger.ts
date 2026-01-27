@@ -2,10 +2,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import { config } from '../config/env';
 import path from 'path';
 
-const isProduction = config.nodeEnv === 'production';
-const routesPattern = isProduction
-  ? path.join(process.cwd(), 'dist', 'routes', '*.js')
-  : path.join(process.cwd(), 'src', 'routes', '*.ts');
+const routesPattern = path.join(__dirname, '..', 'routes', '*.{ts,js}');
 
 const options: swaggerJsdoc.Options = {
   definition: {

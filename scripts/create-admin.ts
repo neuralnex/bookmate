@@ -15,9 +15,9 @@ const createAdmin = async (): Promise<void> => {
       console.log('Usage: npm run create-admin [name] [email] [regNumber] [password]');
       console.log('\nOr set environment variables:');
       console.log('  ADMIN_NAME=Admin User');
-      console.log('  ADMIN_EMAIL=admin@example.com');
+      console.log('  ADMIN_EMAIL=admin@bookmate.com');
       console.log('  ADMIN_REG_NUMBER=20211258822');
-      console.log('  ADMIN_PASSWORD=yourpassword');
+      console.log('  ADMIN_PASSWORD=secgen@');
       console.log('\nExample:');
       console.log('  npm run create-admin "Admin User" admin@bookmate.com 20211258822 admin123');
       process.exit(1);
