@@ -10,7 +10,6 @@ env:
   NODE_VERSION: '20'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  IMAGE_NAME_FRONTEND: ${{ github.repository }}-frontend
 
 jobs:
   # Lint and Test
@@ -40,17 +39,8 @@ jobs:
       - name: Run tests
         run: npm test || echo "Tests not configured, skipping..."
 
-      - name: Install frontend dependencies
-        if: hashFiles('frontend/package.json') != ''
-        run: cd frontend && npm ci
-
-      - name: Frontend type check
-        if: hashFiles('frontend/package.json') != ''
-        run: cd frontend && npm run type-check
-
-      - name: Frontend build
-        if: hashFiles('frontend/package.json') != ''
-        run: cd frontend && npm run build
+      # Frontend is now in a separate repository (neuralnex/FUBOOKS),
+      # so we no longer build or test it in this backend pipeline.
 
   # Build Docker Image
   build:
@@ -88,35 +78,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
 
-      - name: Build and push Docker image
+      - name: Build and push backend Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Extract frontend metadata
-        id: meta_frontend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix={{branch}}-
-
-      - name: Build and push frontend Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ steps.meta_frontend.outputs.tags }}
-          labels: ${{ steps.meta_frontend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
