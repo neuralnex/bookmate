@@ -12,6 +12,7 @@ import { OrderItem } from './OrderItem';
 
 export type PaymentStatus = 'paid' | 'pending' | 'failed';
 export type OrderStatus = 'processing' | 'purchased' | 'delivering' | 'delivered';
+export type DeliveryMethod = 'pickup' | 'delivery';
 
 @Entity('orders')
 export class Order {
@@ -28,6 +29,9 @@ export class Order {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalAmount!: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  deliveryFee!: number;
+
   @Column({
     type: 'enum',
     enum: ['paid', 'pending', 'failed'],
@@ -41,6 +45,13 @@ export class Order {
     default: 'processing',
   })
   orderStatus!: OrderStatus;
+
+  @Column({
+    type: 'enum',
+    enum: ['pickup', 'delivery'],
+    default: 'pickup',
+  })
+  deliveryMethod!: DeliveryMethod;
 
   @Column({ type: 'text' })
   deliveryAddress!: string;

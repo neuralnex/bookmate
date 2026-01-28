@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "522ede88-f876-40d5-9833-58f8f2e88c78"
+      }
+    },
+    "android": {
+      "package": "com.zionzurri.fubooks"
+    }
+  }
+}

@@ -1,8 +1,12 @@
 import { OrderRepository } from '../repositories/order.repository';
 import { OrderItemRepository } from '../repositories/orderItem.repository';
 import { BookRepository } from '../repositories/book.repository';
-import { Order, OrderStatus, PaymentStatus } from '../entities/Order';
+import { DeliveryMethod, Order, OrderStatus, PaymentStatus } from '../entities/Order';
 import { OrderItem } from '../entities/OrderItem';
+
+// Flat delivery fee for Eziobodo deliveries (in Naira)
+// Adjust this value as needed without changing business logic.
+const EZIODOBO_DELIVERY_FEE = 500;
 
 export class OrderService {
   private orderRepository: OrderRepository;
@@ -19,6 +23,7 @@ export class OrderService {
     studentId: string;
     items: Array<{ bookId: string; quantity: number }>;
     deliveryAddress: string;
+    deliveryMethod: DeliveryMethod;
   }): Promise<Order> {
     // Verify all books exist and check stock
     const bookIds = orderData.items.map((item) => item.bookId);
@@ -52,6 +57,11 @@ export class OrderService {
       });
     }
 
+    // Apply delivery fee for Eziobodo delivery
+    const deliveryFee =
+      orderData.deliveryMethod === 'delivery' ? EZIODOBO_DELIVERY_FEE : 0;
+    totalAmount += deliveryFee;
+
     // Create order
     const order = await this.orderRepository.create({
       studentId: orderData.studentId,
@@ -59,6 +69,8 @@ export class OrderService {
       paymentStatus: 'pending',
       orderStatus: 'processing',
       deliveryAddress: orderData.deliveryAddress,
+      deliveryMethod: orderData.deliveryMethod,
+      deliveryFee,
     });
 
     // Create order items

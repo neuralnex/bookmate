@@ -46,7 +46,10 @@ export const createOrderSchema = z.object({
       quantity: z.number().int().positive('Quantity must be positive'),
     })
   ),
+  // For pickup orders we’ll store a standard pickup description
+  // For delivery orders this should be the full Eziobodo delivery address
   deliveryAddress: z.string().min(10, 'Delivery address must be at least 10 characters'),
+  deliveryMethod: z.enum(['pickup', 'delivery']),
 });
 
 export const updateOrderStatusSchema = z.object({
