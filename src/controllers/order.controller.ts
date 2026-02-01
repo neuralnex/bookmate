@@ -83,5 +83,16 @@ export class OrderController {
       next(error);
     }
   };
+
+  cancelOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.id;
+      const order = await this.orderService.cancelOrder(id, userId);
+      sendSuccess(res, order, 'Order cancelled successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 

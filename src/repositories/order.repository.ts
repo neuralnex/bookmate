@@ -51,5 +51,12 @@ export class OrderRepository {
     }
     return updatedOrder;
   }
+
+  async delete(id: string): Promise<void> {
+    const result = await this.repository.delete(id);
+    if (result.affected === 0) {
+      throw new Error('Order not found');
+    }
+  }
 }
 

@@ -153,5 +153,46 @@ export class OrderService {
     }
     return this.orderRepository.update(id, orderData);
   }
+
+  async cancelOrder(orderId: string, studentId: string): Promise<Order> {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Check if order belongs to the student
+    if (order.studentId !== studentId) {
+      throw new Error('Unauthorized to cancel this order');
+    }
+
+    // Check if order can be cancelled
+    // Can only cancel if payment is pending/failed and order is not delivered
+    if (order.orderStatus === 'delivered') {
+      throw new Error('Cannot cancel a delivered order');
+    }
+
+    if (order.paymentStatus === 'paid' && order.orderStatus !== 'processing') {
+      throw new Error('Cannot cancel an order that has been paid and is being processed');
+    }
+
+    // If payment was pending/failed and order was processing, restore stock
+    if (order.orderStatus === 'processing' || order.orderStatus === 'purchased') {
+      // Restore stock for all items in the order
+      for (const item of order.orderItems) {
+        const book = await this.bookRepository.findById(item.bookId);
+        if (book) {
+          await this.bookRepository.update(item.bookId, {
+            stock: book.stock + item.quantity,
+          });
+        }
+      }
+    }
+
+    // Delete the order (or mark as cancelled - depending on your preference)
+    await this.orderRepository.delete(orderId);
+    
+    // Return the order before deletion for response
+    return order;
+  }
 }
 

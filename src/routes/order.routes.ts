@@ -88,5 +88,32 @@ router.get('/', authMiddleware, orderController.getMyOrders);
  */
 router.get('/:id', authMiddleware, orderController.getOrderById);
 
+/**
+ * @swagger
+ * /orders/{id}:
+ *   delete:
+ *     summary: Cancel an order
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Order cancelled successfully
+ *       403:
+ *         description: Unauthorized to cancel this order
+ *       400:
+ *         description: Order cannot be cancelled
+ *       404:
+ *         description: Order not found
+ */
+router.delete('/:id', authMiddleware, orderController.cancelOrder);
+
 export default router;
 
