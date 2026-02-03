@@ -86,8 +86,13 @@ export class OrderController {
 
   cancelOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      if (!req.user) {
+        sendError(res, 'Authentication required', 401);
+        return;
+      }
+
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = req.user.userId;
       const order = await this.orderService.cancelOrder(id, userId);
       sendSuccess(res, order, 'Order cancelled successfully');
     } catch (error) {
