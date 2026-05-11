@@ -14,7 +14,7 @@ export interface OPayPaymentRequest {
   reference: string;
   amount: {
     currency: string;
-    total: number; // in cents
+    total: number; 
   };
   product: {
     name: string;
