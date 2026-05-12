@@ -22,14 +22,14 @@ JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRES_IN=7d
 ```
 
-### OPay Configuration
+### Monnify configuration
 ```bash
-OPAY_MERCHANT_ID=your-opay-merchant-id
-OPAY_PUBLIC_KEY=your-opay-public-key
-OPAY_SECRET_KEY=your-opay-secret-key
-OPAY_BASE_URL=https://testapi.opaycheckout.com  # or https://liveapi.opaycheckout.com for production
-OPAY_CALLBACK_URL=http://localhost:3000/payments/callback
-OPAY_RETURN_URL=http://localhost:3000/payments/return
+MONNIFY_API_KEY=your-api-key
+MONNIFY_SECRET_KEY=your-secret-key
+MONNIFY_CONTRACT_CODE=your-contract-code
+MONNIFY_BASE_URL=https://sandbox.monnify.com  # or https://api.monnify.com for production
+MONNIFY_CALLBACK_URL=http://localhost:3000/payments/callback
+MONNIFY_RETURN_URL=http://localhost:3000/payments/return
 ```
 
 ### Docker PostgreSQL (Optional)
@@ -105,7 +105,7 @@ POSTGRES_PORT=5432
 
 ### Helmet Configuration
 
-- **Content Security Policy**: Configured with OPay baseUrl allowed
+- **Content Security Policy**: Allows Monnify API and checkout SDK origins
 - **Cross-Origin Embedder Policy**: Disabled
 - **Cross-Origin Resource Policy**: cross-origin
 
@@ -149,7 +149,7 @@ POSTGRES_PORT=5432
 - express, cors, helmet, express-rate-limit
 - typeorm, pg (PostgreSQL)
 - jsonwebtoken, bcrypt
-- axios (for OPay API)
+- axios (Monnify REST API)
 - multer (file uploads)
 - zod (validation)
 - swagger-jsdoc, swagger-ui-express
@@ -198,11 +198,11 @@ cat package.json
 - [ ] All environment variables set in `.env`
 - [ ] JWT_SECRET is strong and unique
 - [ ] Database credentials are correct
-- [ ] OPay credentials are configured
+- [ ] Monnify credentials (API key, secret, contract code) are configured
 - [ ] CORS_ORIGIN is set correctly
 - [ ] NODE_ENV is set to 'production'
-- [ ] OPAY_BASE_URL points to production API
-- [ ] OPAY_CALLBACK_URL and OPAY_RETURN_URL are correct
+- [ ] MONNIFY_BASE_URL points to production API (`https://api.monnify.com`)
+- [ ] MONNIFY_CALLBACK_URL and MONNIFY_RETURN_URL are correct
 - [ ] Docker images are built and tested
 - [ ] CI/CD pipeline is configured
 - [ ] Security settings are reviewed

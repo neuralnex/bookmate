@@ -1,10 +1,11 @@
 import 'reflect-metadata';
 import app from './app';
-import { config } from './config/env';
+import { assertRequiredEnv, config } from './config/env';
 import { initializeDatabase } from './config/database';
 
 const startServer = async (): Promise<void> => {
   try {
+    assertRequiredEnv();
     // Initialize database connection
     await initializeDatabase();
 

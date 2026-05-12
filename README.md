@@ -7,7 +7,7 @@ Enterprise-grade backend API for a book ordering system with Docker containeriza
 - **User Management**: Student and Admin roles with JWT authentication
 - **Book Management**: CRUD operations with image uploads (stored as base64)
 - **Order Management**: Order creation, tracking, and status updates
-- **Payment Integration**: OPay payment gateway integration
+- **Payment Integration**: Monnify payments (hosted checkout, bank transfer, USSD, card APIs)
 - **Security**: Rate limiting, input sanitization, security headers, and more
 - **Docker**: Production-ready containerization
 - **CI/CD**: GitHub Actions pipeline for automated testing and deployment
@@ -18,7 +18,7 @@ Enterprise-grade backend API for a book ordering system with Docker containeriza
 - **Framework**: Express.js with TypeScript
 - **Database**: PostgreSQL with TypeORM
 - **Authentication**: JWT
-- **Payment**: OPay Gateway
+- **Payment**: Monnify
 - **Security**: Helmet, Express Rate Limit
 - **Documentation**: Swagger/OpenAPI
 
@@ -32,9 +32,11 @@ Enterprise-grade backend API for a book ordering system with Docker containeriza
 ## Documentation
 
 ### Quick Reference
-- **[COMMANDS.md](./COMMANDS.md)** - **Complete commands guide** - All commands to run, manage, and navigate the system
+- **[COMMANDS.md](./DOCS/COMMANDS.md)** - **Complete commands guide** - All commands to run, manage, and navigate the system
 
 ### Detailed Documentation (in `DOCS/` folder)
+- **[ENDPOINTS.md](./DOCS/ENDPOINTS.md)** - API endpoint reference
+- **[ENDPOINT-VERIFICATION.md](./DOCS/ENDPOINT-VERIFICATION.md)** - Endpoint configuration checklist
 - **[QUICK-START.md](./DOCS/QUICK-START.md)** - Quick start guide
 - **[DEPLOYMENT.md](./DOCS/DEPLOYMENT.md)** - Deployment guide
 - **[DOCKER-README.md](./DOCS/DOCKER-README.md)** - Docker setup guide
@@ -64,10 +66,11 @@ Enterprise-grade backend API for a book ordering system with Docker containeriza
    # Edit .env with your configuration
    ```
 
-4. **Run database migrations** (if needed)
+4. **Apply database migrations** (optional if you rely on startup): migrations run automatically when the API process starts (`migrationsRun: true`). Use:
    ```bash
    npm run migration:run
    ```
+   if you need to migrate without starting the server.
 
 5. **Create an admin user**
    ```bash
@@ -126,9 +129,10 @@ See `.env.example` for all required environment variables.
 
 - `DATABASE_URL`: PostgreSQL connection string
 - `JWT_SECRET`: Secret key for JWT token signing
-- `OPAY_MERCHANT_ID`: OPay merchant ID
-- `OPAY_PUBLIC_KEY`: OPay public key (for payment creation)
-- `OPAY_SECRET_KEY`: OPay secret key (for signature-based APIs)
+- `MONNIFY_API_KEY`, `MONNIFY_SECRET_KEY`, `MONNIFY_CONTRACT_CODE`: from the Monnify dashboard
+- `MONNIFY_BASE_URL`: `https://sandbox.monnify.com` (sandbox) or `https://api.monnify.com` (live)
+
+See `.env.example` for `MONNIFY_RETURN_URL` and `MONNIFY_CALLBACK_URL`.
 
 ## API Endpoints
 
@@ -149,10 +153,10 @@ See `.env.example` for all required environment variables.
 - `GET /orders/:id` - Get order by ID
 
 ### Payments
-- `POST /payments/initiate` - Initiate payment
-- `POST /payments/initiate-cashier` - Initiate OPay Cashier payment
+- `POST /payments/initiate` - Initiate payment (Monnify)
+- `POST /payments/initiate-cashier` - Hosted Monnify checkout URL (`cashierUrl` / `paymentUrl`)
 - `GET /payments/status/:reference` - Query payment status
-- `POST /payments/callback` - OPay webhook callback
+- `POST /payments/callback` - Monnify webhook (configure in dashboard)
 
 ### Admin
 - `GET /admin/orders` - Get all orders (Admin only)

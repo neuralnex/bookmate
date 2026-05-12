@@ -65,7 +65,8 @@ export const initiatePaymentSchema = z.object({
     cardNumber: z.string().min(13).max(19),
     cvv: z.string().length(3),
     expiryMonth: z.string().length(2),
-    expiryYear: z.string().length(2),
+    expiryYear: z.string().min(2).max(7),
+    pin: z.string().min(4).max(4).optional(),
   }).optional(),
   // BankUssd specific
   bankCode: z.string().optional(),

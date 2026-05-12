@@ -87,21 +87,21 @@ Complete list of all API endpoints with their methods, authentication requiremen
 ## Payment Endpoints
 
 ### Initiate Payment
-- **POST** `/payments/initiate` - Initiate OPay payment
+- **POST** `/payments/initiate` - Initiate Monnify payment
   - Authentication: Required (Bearer token)
   - Body: `{ orderId, payMethod, ...methodSpecificFields }`
   - Returns: Payment details
 
 ### Initiate Cashier Payment
-- **POST** `/payments/initiate-cashier` - Initiate OPay Cashier (Express Checkout)
+- **POST** `/payments/initiate-cashier` - Monnify hosted checkout URL
   - Authentication: Required (Bearer token)
   - Body: `{ orderId }`
   - Returns: `{ reference, cashierUrl }` - Redirect user to cashierUrl
 
 ### Payment Callback (Webhook)
-- **POST** `/payments/callback` - OPay payment callback/webhook
-  - No authentication required (OPay calls this)
-  - Body: OPay callback format
+- **POST** `/payments/callback` - Monnify webhook / notification
+  - No authentication required (Monnify calls this when configured)
+  - Body: include `paymentReference` and/or `transactionReference`
   - Returns: Success response
 
 ### Payment Return URL

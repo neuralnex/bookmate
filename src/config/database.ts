@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import path from 'path';
 import { config } from './env';
 import { User } from '../entities/User';
 import { Book } from '../entities/Book';
@@ -11,14 +12,17 @@ const needsSSL = config.database.url.includes('render.com') ||
                  config.database.url.includes('azure.com') ||
                  process.env.DATABASE_SSL === 'true';
 
+const migrationExt = __filename.endsWith('.js') ? 'js' : 'ts';
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: config.database.url,
   synchronize: config.nodeEnv === 'development',
   logging: config.nodeEnv === 'development',
+  migrationsRun: true,
   entities: [User, Book, Order, OrderItem],
-  migrations: ['src/migrations/**/*.ts'],
-  subscribers: ['src/subscribers/**/*.ts'],
+  migrations: [path.join(__dirname, '..', 'migrations', `*.${migrationExt}`)],
+  subscribers: [],
   ...(needsSSL && {
     ssl: {
       rejectUnauthorized: false,

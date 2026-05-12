@@ -170,12 +170,12 @@ PORT=3000
 DATABASE_URL=postgresql://user:password@host:5432/bookmate
 JWT_SECRET=<strong-secret>
 CORS_ORIGIN=https://yourdomain.com
-OPAY_MERCHANT_ID=<your-merchant-id>
-OPAY_PUBLIC_KEY=<your-public-key>
-OPAY_SECRET_KEY=<your-secret-key>
-OPAY_BASE_URL=https://liveapi.opaycheckout.com
-OPAY_CALLBACK_URL=https://yourdomain.com/payments/callback
-OPAY_RETURN_URL=https://yourdomain.com/payments/return
+MONNIFY_API_KEY=<your-api-key>
+MONNIFY_SECRET_KEY=<your-secret-key>
+MONNIFY_CONTRACT_CODE=<your-contract-code>
+MONNIFY_BASE_URL=https://api.monnify.com
+MONNIFY_CALLBACK_URL=https://yourdomain.com/payments/callback
+MONNIFY_RETURN_URL=https://yourdomain.com/payments/return
 ```
 
 ### Database Setup

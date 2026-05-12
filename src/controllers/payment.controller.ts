@@ -2,6 +2,31 @@ import { Request, Response, NextFunction } from 'express';
 import { PaymentService } from '../services/payment.service';
 import { sendSuccess, sendError } from '../utils/response';
 import { initiatePaymentSchema, verifyPaymentSchema } from '../utils/validators';
+import { config } from '../config/env';
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function pickQueryScalar(query: Request['query'], key: string): string | undefined {
+  const raw = query[key];
+  if (raw === undefined) return undefined;
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  return typeof v === 'string' && v.length ? v : undefined;
+}
+
+function pickWebhookReference(body: Record<string, unknown>): string | undefined {
+  const candidates = [
+    body.paymentReference,
+    body.reference,
+    body.transactionReference,
+    body.paymentRef,
+    body.payRef,
+    body.payment_reference,
+    body.transaction_reference,
+  ].filter((x) => typeof x === 'string' && String(x).length > 0) as string[];
+
+  return candidates[0];
+}
 
 export class PaymentController {
   private paymentService: PaymentService;
@@ -41,18 +66,73 @@ export class PaymentController {
 
   handleCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // OPay callback format
-      const { reference, orderNo, status } = req.body;
+      const body = req.body as Record<string, unknown>;
+      const reference = pickWebhookReference(body);
 
-      if (!reference || !status) {
-        sendError(res, 'Missing required callback parameters', 400);
+      if (!reference) {
+        sendError(res, 'Missing payment or transaction reference in callback payload', 400);
         return;
       }
 
-      await this.paymentService.handleCallback(reference, orderNo, status);
-      
-      // OPay expects 200 response
-      res.status(200).json({ code: '00000', message: 'SUCCESSFUL' });
+      await this.paymentService.syncPaymentFromMonnifyReference(reference);
+
+      res.status(200).json({
+        requestSuccessful: true,
+        responseMessage: 'success',
+        responseCode: '0',
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Monnify redirects the browser here (HTTPS). This page immediately opens the native app via custom scheme + Expo Router.
+   */
+  handleMobileReturn = (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const scheme = config.app.deepLinkScheme;
+      const orderId = pickQueryScalar(req.query, 'orderId');
+
+      if (!orderId || !UUID_RE.test(orderId)) {
+        const msg = encodeURIComponent(
+          orderId ? 'invalid_order_link' : 'missing_order_link'
+        );
+        const fallback = `${scheme}://orders?deepLink_error=${msg}`;
+        res
+          .status(400)
+          .setHeader('Content-Type', 'text/html; charset=utf-8')
+          .send(
+            `<!DOCTYPE html><html><body style="font-family:system-ui;padding:24px;text-align:center">
+            <p>Invalid payment return link.</p>
+            <p><a href=${JSON.stringify(fallback)}>Open app</a></p></body></html>`
+          );
+        return;
+      }
+
+      const forward = new URLSearchParams();
+      for (const [key, raw] of Object.entries(req.query)) {
+        if (key === 'orderId') continue;
+        if (raw === undefined) continue;
+        const v = Array.isArray(raw) ? raw[0] : raw;
+        if (typeof v === 'string' && v.length > 0) {
+          forward.set(key, v);
+        }
+      }
+      const qs = forward.toString();
+      const deeplinkHost = `${scheme}://orders/${orderId}/payment-confirm`;
+      const deepLink = qs ? `${deeplinkHost}?${qs}` : deeplinkHost;
+
+      const js = JSON.stringify(deepLink);
+      const html =
+        `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Bookmate — return to app</title>` +
+        `<script>(function(){setTimeout(function(){location.replace(${js});},200);})();</script></head>` +
+        `<body style="font-family:system-ui,sans-serif;text-align:center;padding:32px;line-height:1.5;color:#222">` +
+        `<p>Opening the Bookmate app…</p>` +
+        `<p><a href=${js} style="display:inline-block;padding:14px 20px;background:#111;color:#fff;text-decoration:none;border-radius:12px;font-weight:600">Open app</a></p>` +
+        `<p style="font-size:14px;color:#666">If nothing happens, tap the button.</p>` +
+        `</body></html>`;
+      res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
     } catch (error) {
       next(error);
     }
@@ -60,23 +140,25 @@ export class PaymentController {
 
   handleReturn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Handle return URL redirect after payment
-      const { reference, status } = req.query;
+      const { reference } = req.query;
 
       if (!reference) {
         sendError(res, 'Missing payment reference', 400);
         return;
       }
 
-      // Query payment status
       const paymentStatus = await this.paymentService.queryPaymentStatus(reference as string);
-      
-      sendSuccess(res, {
-        reference,
-        status: paymentStatus.status,
-        amount: paymentStatus.amount,
-        currency: paymentStatus.currency,
-      }, 'Payment status retrieved');
+
+      sendSuccess(
+        res,
+        {
+          reference,
+          status: paymentStatus.status,
+          amount: paymentStatus.amount,
+          currency: paymentStatus.currency,
+        },
+        'Payment status retrieved'
+      );
     } catch (error) {
       next(error);
     }
@@ -108,7 +190,7 @@ export class PaymentController {
       }
 
       await this.paymentService.cancelPayment(reference);
-      sendSuccess(res, null, 'Payment cancelled successfully');
+      sendSuccess(res, null, 'Payment cancelled locally');
     } catch (error) {
       next(error);
     }
@@ -128,7 +210,7 @@ export class PaymentController {
       }
 
       const result = await this.paymentService.initiateCashierPayment(orderId);
-      sendSuccess(res, result, 'Cashier payment initiated successfully');
+      sendSuccess(res, result, 'Checkout payment initiated successfully');
     } catch (error) {
       next(error);
     }

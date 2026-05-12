@@ -78,8 +78,8 @@ start_prod() {
         echo -e "${YELLOW}Warning: JWT_SECRET not set in .env${NC}"
     fi
     
-    if [ -z "$OPAY_MERCHANT_ID" ] && ! grep -q "OPAY_MERCHANT_ID=" .env 2>/dev/null; then
-        echo -e "${YELLOW}Warning: OPay credentials not set in .env${NC}"
+    if [ -z "$MONNIFY_API_KEY" ] && ! grep -q "MONNIFY_API_KEY=" .env 2>/dev/null; then
+        echo -e "${YELLOW}Warning: Monnify credentials not set in .env${NC}"
     fi
     
     echo "Building and starting containers..."

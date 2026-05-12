@@ -26,7 +26,7 @@ docker-compose --version # Should be 2.0+
 Check `.env` file has:
 - ✅ `DATABASE_URL` (optional for Docker - auto-configured)
 - ✅ `JWT_SECRET` (required for production)
-- ✅ `OPAY_*` variables (if using payments)
+- ✅ `MONNIFY_*` variables (if using payments)
 
 ## 🚀 Quick Start Commands
 

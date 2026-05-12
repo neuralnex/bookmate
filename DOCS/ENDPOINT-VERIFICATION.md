@@ -24,7 +24,7 @@ Total Endpoints: 19
 ### Payment Routes (7 endpoints)
 ✅ POST /payments/initiate - Initiate payment (Auth)
 ✅ POST /payments/initiate-cashier - Initiate cashier payment (Auth)
-✅ POST /payments/callback - OPay callback (Public - Webhook)
+✅ POST /payments/callback - Monnify callback (Public - Webhook)
 ✅ GET /payments/return - Payment return URL (Public)
 ✅ GET /payments/status/:reference - Query payment status (Public)
 ✅ POST /payments/cancel - Cancel payment (Auth)

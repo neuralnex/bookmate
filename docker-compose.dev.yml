@@ -31,16 +31,16 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
-      DATABASE_URL: postgresql://bookmate_user:bookmate_password@postgres:5432/bookmate
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
-      OPAY_MERCHANT_ID: ${OPAY_MERCHANT_ID}
-      OPAY_PUBLIC_KEY: ${OPAY_PUBLIC_KEY}
-      OPAY_SECRET_KEY: ${OPAY_SECRET_KEY}
-      OPAY_BASE_URL: ${OPAY_BASE_URL:-https://testapi.opaycheckout.com}
-      OPAY_CALLBACK_URL: ${OPAY_CALLBACK_URL:-http://localhost:3000/payments/callback}
-      OPAY_RETURN_URL: ${OPAY_RETURN_URL:-http://localhost:3000/payments/return}
+      MONNIFY_API_KEY: ${MONNIFY_API_KEY}
+      MONNIFY_SECRET_KEY: ${MONNIFY_SECRET_KEY}
+      MONNIFY_CONTRACT_CODE: ${MONNIFY_CONTRACT_CODE}
+      MONNIFY_BASE_URL: ${MONNIFY_BASE_URL}
+      MONNIFY_CALLBACK_URL: ${MONNIFY_CALLBACK_URL}
+      MONNIFY_RETURN_URL: ${MONNIFY_RETURN_URL}
     ports:
       - "3000:3000"
     volumes:

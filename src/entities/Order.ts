@@ -57,10 +57,10 @@ export class Order {
   deliveryAddress!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  paymentReference?: string; // OPay payment reference
+  paymentReference?: string; // Merchant reference (BOOKMATE-…)
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  opayOrderNo?: string; // OPay order number
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'monnify_transaction_reference' })
+  monnifyTransactionReference?: string;
 
   @CreateDateColumn()
   createdAt!: Date;

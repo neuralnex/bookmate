@@ -9,7 +9,7 @@ const paymentController = new PaymentController();
  * @swagger
  * /payments/initiate:
  *   post:
- *     summary: Initiate OPay payment for an order
+ *     summary: Initiate payment for an order (Monnify)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -78,11 +78,11 @@ const paymentController = new PaymentController();
  * @swagger
  * /payments/initiate-cashier:
  *   post:
- *     summary: Initiate OPay Cashier (Express Checkout) payment
+ *     summary: Initiate checkout payment (returns Monnify hosted checkout URL)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
- *     description: Creates a payment and returns a cashier URL. Redirect user to cashierUrl to complete payment.
+ *     description: Creates a Monnify transaction and returns a hosted checkout URL. Redirect the user there to complete payment.
  *     requestBody:
  *       required: true
  *       content:
@@ -97,7 +97,7 @@ const paymentController = new PaymentController();
  *                 format: uuid
  *     responses:
  *       200:
- *         description: Cashier payment initiated successfully. Returns cashierUrl for redirect.
+ *         description: Checkout initiated. Returns cashierUrl / paymentUrl (Monnify hosted checkout) for redirect.
  *       400:
  *         description: Order already paid or invalid order
  */
@@ -109,9 +109,11 @@ router.post('/initiate-cashier', authMiddleware, paymentController.initiateCashi
  * @swagger
  * /payments/callback:
  *   post:
- *     summary: OPay payment callback/webhook
+ *     summary: Monnify payment webhook / notification
  *     tags: [Payments]
- *     description: This endpoint receives callbacks from OPay when payment status changes
+ *     description: >-
+ *       Handles server notifications from Monnify. Sends `paymentReference` and/or `transactionReference`
+ *       so the backend can reconcile status against Monnify.
  *     requestBody:
  *       required: true
  *       content:
@@ -119,18 +121,29 @@ router.post('/initiate-cashier', authMiddleware, paymentController.initiateCashi
  *           schema:
  *             type: object
  *             properties:
- *               reference:
+ *               paymentReference:
  *                 type: string
- *               orderNo:
+ *               transactionReference:
  *                 type: string
- *               status:
+ *               paymentStatus:
  *                 type: string
- *                 enum: [INITIAL, PENDING, SUCCESS, FAIL, CLOSE]
  *     responses:
  *       200:
  *         description: Callback processed successfully
  */
 router.post('/callback', paymentController.handleCallback);
+
+/**
+ * @swagger
+ * /payments/mobile-return:
+ *   get:
+ *     summary: Mobile checkout return bridge (HTTPS → opens native app via deep link)
+ *     tags: [Payments]
+ *     description: >-
+ *       Monnify redirects customers here after payment. Requires `orderId` query parameter.
+ *       Monnify may append `paymentReference`, `transactionReference`, etc.—they are forwarded to the app.
+ */
+router.get('/mobile-return', paymentController.handleMobileReturn);
 
 /**
  * @swagger

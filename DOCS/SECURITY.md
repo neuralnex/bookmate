@@ -175,7 +175,7 @@ This system implements security measures aligned with:
 
 - **OWASP Top 10**: Protection against common vulnerabilities
 - **CWE Top 25**: Prevention of common weaknesses
-- **PCI DSS**: Payment data security (via OPay gateway)
+- **PCI DSS**: Payment data stays with Monnify for hosted checkout flows
 
 ## Reporting Security Issues
 

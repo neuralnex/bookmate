@@ -17,7 +17,7 @@ const createAdmin = async (): Promise<void> => {
       console.log('  ADMIN_NAME=Admin User');
       console.log('  ADMIN_EMAIL=admin@bookmate.com');
       console.log('  ADMIN_REG_NUMBER=20211258822');
-      console.log('  ADMIN_PASSWORD=secgen@');
+      console.log('  ADMIN_PASSWORD=your-secure-password');
       console.log('\nExample:');
       console.log('  npm run create-admin "Admin User" admin@bookmate.com 20211258822 admin123');
       process.exit(1);

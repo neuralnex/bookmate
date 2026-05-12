@@ -77,9 +77,7 @@ The Docker setup uses environment variables from your `.env` file. For developme
 
 **Required for Production:**
 - `JWT_SECRET` - Strong secret key
-- `OPAY_MERCHANT_ID` - OPay merchant ID
-- `OPAY_PUBLIC_KEY` - OPay public key
-- `OPAY_SECRET_KEY` - OPay secret key
+- `MONNIFY_API_KEY`, `MONNIFY_SECRET_KEY`, `MONNIFY_CONTRACT_CODE` - payments
 
 **Optional (has defaults):**
 - `PORT` - Server port (default: 3000)

@@ -29,12 +29,12 @@ Required variables:
   JWT_SECRET=your-secret-key
   JWT_EXPIRES_IN=7d
   CORS_ORIGIN=*
-  OPAY_MERCHANT_ID=your-merchant-id
-  OPAY_PUBLIC_KEY=your-public-key
-  OPAY_SECRET_KEY=your-secret-key
-  OPAY_BASE_URL=https://testapi.opaycheckout.com
-  OPAY_CALLBACK_URL=http://localhost:3000/payments/callback
-  OPAY_RETURN_URL=http://localhost:3000/payments/return
+  MONNIFY_API_KEY=your-api-key
+  MONNIFY_SECRET_KEY=your-secret-key
+  MONNIFY_CONTRACT_CODE=your-contract-code
+  MONNIFY_BASE_URL=https://sandbox.monnify.com
+  MONNIFY_CALLBACK_URL=http://localhost:3000/payments/callback
+  MONNIFY_RETURN_URL=http://localhost:3000/payments/return
 
 Optional Docker variables:
   POSTGRES_USER=bookmate_user
@@ -135,10 +135,10 @@ API ENDPOINTS
   GET  /orders/:id         # Get order by ID
   
   POST /payments/initiate          # Initiate payment
-  POST /payments/initiate-cashier   # OPay Cashier payment
+  POST /payments/initiate-cashier   # Monnify hosted checkout URL
   GET  /payments/status/:reference  # Query payment status
-  POST /payments/callback           # OPay webhook
-  GET  /payments/return             # OPay return URL
+  POST /payments/callback           # Monnify webhook / notification (optional)
+  GET  /payments/return             # Return URL landing (query Monnify status)
   
   GET  /admin/orders               # Get all orders (Admin)
   PUT  /admin/orders/:id/status   # Update order status (Admin)
