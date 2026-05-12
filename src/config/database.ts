@@ -7,10 +7,12 @@ import { Order } from '../entities/Order';
 import { OrderItem } from '../entities/OrderItem';
 
 // Determine if SSL is needed (for cloud databases like Render.com)
-const needsSSL = config.database.url.includes('render.com') || 
-                 config.database.url.includes('amazonaws.com') ||
-                 config.database.url.includes('azure.com') ||
-                 process.env.DATABASE_SSL === 'true';
+const needsSSL =
+  config.database.url.includes('neon.tech') ||
+  config.database.url.includes('render.com') ||
+  config.database.url.includes('amazonaws.com') ||
+  config.database.url.includes('azure.com') ||
+  process.env.DATABASE_SSL === 'true';
 
 const migrationExt = __filename.endsWith('.js') ? 'js' : 'ts';
 

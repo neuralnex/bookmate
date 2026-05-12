@@ -10,10 +10,13 @@ const startServer = async (): Promise<void> => {
     await initializeDatabase();
 
     // Start server
-    app.listen(config.port, () => {
-      console.log(`Server running on http://localhost:${config.port}`);
-      console.log(`API Documentation: http://localhost:${config.port}/api-docs`);
-      console.log(`Health Check: http://localhost:${config.port}/health`);
+    // Bind all interfaces — required on Render/Fly/other hosts where probes hit the runtime PORT from outside localhost-only binding.
+    const port = Number(config.port);
+    app.listen(Number.isFinite(port) ? port : 3000, '0.0.0.0', () => {
+      const p = Number.isFinite(port) ? port : 3000;
+      console.log(`Server listening on http://0.0.0.0:${p}`);
+      console.log(`API Documentation: http://localhost:${p}/api-docs`);
+      console.log(`Health Check: http://localhost:${p}/health`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
