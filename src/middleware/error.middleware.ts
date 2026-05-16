@@ -47,6 +47,17 @@ export const errorMiddleware = (
     return sendError(res, 'Invalid file type', 400, 'Only image files are allowed (png, jpg, jpeg, gif, webp)');
   }
 
+  // Auth (plain Error from AuthService — map to correct HTTP status for clients)
+  if (err.message === 'Invalid email/registration number or password') {
+    return sendError(res, err.message, 401);
+  }
+  if (
+    err.message?.includes('already exists') &&
+    (err.message.includes('email') || err.message.includes('registration'))
+  ) {
+    return sendError(res, err.message, 409);
+  }
+
   // Default error
   return sendError(
     res,

@@ -32,6 +32,14 @@ app.use(helmetMiddleware);
 app.use(securityHeadersMiddleware);
 app.use(requestIdMiddleware);
 
+app.use((req, _res, next) => {
+  const rid = req.headers['x-request-id'];
+  console.log(
+    `[http] ${typeof rid === 'string' ? rid : ''} ${req.method} ${req.originalUrl}`
+  );
+  next();
+});
+
 app.use(cors(securityConfig.cors));
 
 app.use(express.json(securityConfig.bodyParser.json));
