@@ -140,10 +140,12 @@ router.post('/callback', paymentController.handleCallback);
  *     summary: Mobile checkout return bridge (HTTPS → opens native app via deep link)
  *     tags: [Payments]
  *     description: >-
- *       Monnify redirects customers here after payment. Requires `orderId` query parameter.
+ *       Monnify redirects customers here after payment. Requires `orderId` in the path,
+ *       with the legacy query parameter still supported.
  *       Monnify may append `paymentReference`, `transactionReference`, etc.—they are forwarded to the app.
  */
 router.get('/mobile-return', paymentController.handleMobileReturn);
+router.get('/mobile-return/:orderId', paymentController.handleMobileReturn);
 
 /**
  * @swagger
@@ -244,4 +246,3 @@ router.post('/cancel', authMiddleware, paymentController.cancelPayment);
 router.post('/verify', paymentController.verifyPayment);
 
 export default router;
-

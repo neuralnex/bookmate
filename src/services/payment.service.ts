@@ -43,8 +43,7 @@ export class PaymentService {
         'Set PUBLIC_WEB_BASE_URL or a full MONNIFY_RETURN_URL so the mobile return bridge can be built'
       );
     }
-    const u = `${base}/payments/mobile-return`;
-    return `${u}?${new URLSearchParams({ orderId }).toString()}`;
+    return `${base}/payments/mobile-return/${encodeURIComponent(orderId)}`;
   }
 
   private async persistTxnAndRespond(

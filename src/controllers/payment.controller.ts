@@ -14,6 +14,14 @@ function pickQueryScalar(query: Request['query'], key: string): string | undefin
   return typeof v === 'string' && v.length ? v : undefined;
 }
 
+function pickOrderId(req: Request): string | undefined {
+  const paramId = req.params.orderId;
+  if (typeof paramId === 'string' && paramId.length) {
+    return paramId;
+  }
+  return pickQueryScalar(req.query, 'orderId');
+}
+
 function pickWebhookReference(body: Record<string, unknown>): string | undefined {
   const candidates = [
     body.paymentReference,
@@ -92,13 +100,13 @@ export class PaymentController {
   handleMobileReturn = (req: Request, res: Response, next: NextFunction): void => {
     try {
       const scheme = config.app.deepLinkScheme;
-      const orderId = pickQueryScalar(req.query, 'orderId');
+      const orderId = pickOrderId(req);
 
       if (!orderId || !UUID_RE.test(orderId)) {
         const msg = encodeURIComponent(
           orderId ? 'invalid_order_link' : 'missing_order_link'
         );
-        const fallback = `${scheme}://orders?deepLink_error=${msg}`;
+        const fallback = `${scheme}:///orders?deepLink_error=${msg}`;
         res
           .status(400)
           .setHeader('Content-Type', 'text/html; charset=utf-8')
@@ -120,7 +128,7 @@ export class PaymentController {
         }
       }
       const qs = forward.toString();
-      const deeplinkHost = `${scheme}://orders/${orderId}/payment-confirm`;
+      const deeplinkHost = `${scheme}:///orders/${encodeURIComponent(orderId)}/payment-confirm`;
       const deepLink = qs ? `${deeplinkHost}?${qs}` : deeplinkHost;
 
       const js = JSON.stringify(deepLink);
