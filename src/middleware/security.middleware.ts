@@ -136,8 +136,10 @@ export const performanceMonitorMiddleware = (
     const end = process.hrtime.bigint();
     const durationMs = Number(end - start) / 1_000_000;
     
-    // Add response time header
-    res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+    // Only set header if response hasn't been sent yet
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+    }
     
     console.log(JSON.stringify({
       timestamp: new Date().toISOString(),
