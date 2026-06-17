@@ -118,44 +118,119 @@ export class PaymentController {
         return;
       }
 
-      const forward = new URLSearchParams();
-      for (const [key, raw] of Object.entries(req.query)) {
-        if (key === 'orderId') continue;
-        if (raw === undefined) continue;
-        const v = Array.isArray(raw) ? raw[0] : raw;
-        if (typeof v === 'string' && v.length > 0) {
-          forward.set(key, v);
-        }
-      }
-      const qs = forward.toString();
-      const deeplinkHost = `${scheme}:///orders/${encodeURIComponent(orderId)}/payment-confirm`;
-      const deepLink = qs ? `${deeplinkHost}?${qs}` : deeplinkHost;
+      // NEW: Check and sync payment status before redirecting
+      this.syncPaymentStatusForOrder(orderId)
+        .then(() => {
+          // Build deep link after syncing
+          const forward = new URLSearchParams();
+          for (const [key, raw] of Object.entries(req.query)) {
+            if (key === 'orderId') continue;
+            if (raw === undefined) continue;
+            const v = Array.isArray(raw) ? raw[0] : raw;
+            if (typeof v === 'string' && v.length > 0) {
+              forward.set(key, v);
+            }
+          }
+          const qs = forward.toString();
+          const deeplinkHost = `${scheme}:///orders/${encodeURIComponent(orderId)}/payment-confirm`;
+          const deepLink = qs ? `${deeplinkHost}?${qs}` : deeplinkHost;
 
-      const js = JSON.stringify(deepLink);
-      const html =
-        `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Bookmate — return to app</title>` +
-        `<script>(function(){setTimeout(function(){location.replace(${js});},200);})();</script></head>` +
-        `<body style="font-family:system-ui,sans-serif;text-align:center;padding:32px;line-height:1.5;color:#222">` +
-        `<p>Opening the Bookmate app…</p>` +
-        `<p><a href=${js} style="display:inline-block;padding:14px 20px;background:#111;color:#fff;text-decoration:none;border-radius:12px;font-weight:600">Open app</a></p>` +
-        `<p style="font-size:14px;color:#666">If nothing happens, tap the button.</p>` +
-        `</body></html>`;
-      res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
+          const js = JSON.stringify(deepLink);
+          const html =
+            `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Bookmate — return to app</title>` +
+            `<script>(function(){setTimeout(function(){location.replace(${js});},200);})();</script></head>` +
+            `<body style="font-family:system-ui,sans-serif;text-align:center;padding:32px;line-height:1.5;color:#222">` +
+            `<p>Opening the Bookmate app…</p>` +
+            `<p><a href=${js} style="display:inline-block;padding:14px 20px;background:#111;color:#fff;text-decoration:none;border-radius:12px;font-weight:600">Open app</a></p>` +
+            `<p style="font-size:14px;color:#666">If nothing happens, tap the button.</p>` +
+            `</body></html>`;
+          res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
+        })
+        .catch((error) => {
+          console.error(`Failed to sync payment status for order ${orderId}:`, error);
+          const forward = new URLSearchParams();
+          for (const [key, raw] of Object.entries(req.query)) {
+            if (key === 'orderId') continue;
+            if (raw === undefined) continue;
+            const v = Array.isArray(raw) ? raw[0] : raw;
+            if (typeof v === 'string' && v.length > 0) {
+              forward.set(key, v);
+            }
+          }
+          const qs = forward.toString();
+          const deeplinkHost = `${scheme}:///orders/${encodeURIComponent(orderId)}/payment-confirm`;
+          const deepLink = qs ? `${deeplinkHost}?${qs}` : deeplinkHost;
+
+          const js = JSON.stringify(deepLink);
+          const html =
+            `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Bookmate — return to app</title>` +
+            `<script>(function(){setTimeout(function(){location.replace(${js});},200);})();</script></head>` +
+            `<body style="font-family:system-ui,sans-serif;text-align:center;padding:32px;line-height:1.5;color:#222">` +
+            `<p>Opening the Bookmate app…</p>` +
+            `<p><a href=${js} style="display:inline-block;padding:14px 20px;background:#111;color:#fff;text-decoration:none;border-radius:12px;font-weight:600">Open app</a></p>` +
+            `<p style="font-size:14px;color:#666">If nothing happens, tap the button.</p>` +
+            `<p style="font-size:12px;color:#999">Note: Payment status sync encountered an error</p>` +
+            `</body></html>`;
+          res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
+        });
     } catch (error) {
       next(error);
     }
   };
 
+  private async syncPaymentStatusForOrder(orderId: string): Promise<void> {
+    try {
+      const order = await this.paymentService.getOrderById(orderId);
+      
+      if (order.paymentStatus === 'pending') {
+        console.log(`Attempting to sync payment for order ${orderId} with paymentReference ${order.paymentReference}`);
+        
+        if (order.paymentReference) {
+          await this.paymentService.syncPaymentFromMonnifyReference(order.paymentReference);
+        } else if (order.monnifyTransactionReference) {
+          await this.paymentService.syncPaymentFromMonnifyReference(
+            order.monnifyTransactionReference
+          );
+        } else {
+          console.log(`Order ${orderId} has no payment reference or transaction reference`);
+        }
+      } else {
+        console.log(`Order ${orderId} already has paymentStatus: ${order.paymentStatus}, skipping sync`);
+      }
+    } catch (error) {
+      console.error(`Failed to sync payment for order ${orderId}:`, error);
+    }
+  }
+
   handleReturn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { reference } = req.query;
 
-      if (!reference) {
+      if (!reference || typeof reference !== 'string') {
         sendError(res, 'Missing payment reference', 400);
         return;
       }
 
-      const paymentStatus = await this.paymentService.queryPaymentStatus(reference as string);
+      console.log(`Payment return query for reference: ${reference}`);
+
+      let paymentStatus;
+      try {
+        paymentStatus = await this.paymentService.queryPaymentStatus(reference);
+      } catch (queryError) {
+        console.error(`Failed to query payment status for ${reference}:`, queryError);
+        try {
+          const order = await this.paymentService.getOrderByPaymentReference(reference);
+          paymentStatus = {
+            status: order.paymentStatus,
+            amount: order.totalAmount,
+            currency: 'NGN'
+          };
+        } catch (dbError) {
+          console.error(`Failed to find order for reference ${reference}:`, dbError);
+          sendError(res, 'Payment reference not found', 404);
+          return;
+        }
+      }
 
       sendSuccess(
         res,
@@ -181,7 +256,27 @@ export class PaymentController {
         return;
       }
 
-      const paymentStatus = await this.paymentService.queryPaymentStatus(reference);
+      console.log(`Query payment status for reference: ${reference}`);
+
+      let paymentStatus;
+      try {
+        paymentStatus = await this.paymentService.queryPaymentStatus(reference);
+      } catch (queryError) {
+        console.error(`Monnify query failed for ${reference}:`, queryError);
+        try {
+          const order = await this.paymentService.getOrderByPaymentReference(reference);
+          paymentStatus = {
+            status: order.paymentStatus,
+            amount: order.totalAmount,
+            currency: 'NGN'
+          };
+        } catch (dbError) {
+          console.error(`Order not found for reference ${reference}:`, dbError);
+          sendError(res, 'Payment reference not found', 404);
+          return;
+        }
+      }
+
       sendSuccess(res, paymentStatus, 'Payment status retrieved');
     } catch (error) {
       next(error);

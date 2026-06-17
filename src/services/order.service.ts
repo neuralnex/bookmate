@@ -127,6 +127,26 @@ export class OrderService {
     return this.orderRepository.update(id, { paymentStatus });
   }
 
+  async getOrderByPaymentReference(paymentReference: string): Promise<Order> {
+    const order = await this.orderRepository.findByPaymentReference(paymentReference);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    return order;
+  }
+
+  async getOrderByMonnifyTransactionReference(
+    monnifyTransactionReference: string
+  ): Promise<Order> {
+    const order = await this.orderRepository.findByMonnifyTransactionReference(
+      monnifyTransactionReference
+    );
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    return order;
+  }
+
   async decrementStockForOrder(orderId: string): Promise<void> {
     const order = await this.orderRepository.findById(orderId);
     if (!order) {
@@ -144,6 +164,14 @@ export class OrderService {
       throw new Error('Order not found');
     }
     return order;
+  }
+
+  async updateOrder(id: string, orderData: Partial<Order>): Promise<Order> {
+    const order = await this.orderRepository.findById(id);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    return this.orderRepository.update(id, orderData);
   }
 
   async updateOrder(id: string, orderData: Partial<Order>): Promise<Order> {

@@ -302,32 +302,68 @@ export class PaymentService {
    * or Monnify transaction reference (both work with GET .../merchant/transactions/query).
    */
   async syncPaymentFromMonnifyReference(reference: string): Promise<void> {
-    const details = await this.monnifyService.getTransactionStatus(reference);
+    console.log(`Syncing payment from Monnify for reference: ${reference}`);
 
-    const order = await this.orderService.getOrderByPaymentReference(
-      details.paymentReference
-    );
+    let details: MonnifyTransactionDetails;
 
-    if (!order) {
-      throw new Error('Order not found');
+    try {
+      details = await this.monnifyService.getTransactionStatus(reference);
+      console.log(`Monnify transaction details for ${reference}:`, details);
+    } catch (monnifyError) {
+      console.error(`Failed to get transaction from Monnify for ${reference}:`, monnifyError);
+      const order = await this.getOrderByPaymentReference(reference);
+      if (!order) {
+        throw new Error(`Order not found for payment reference: ${reference}`);
+      }
+      if (order.paymentStatus === 'paid') {
+        console.log(`Order ${order.id} already marked as paid, skipping sync`);
+        return;
+      }
+      throw new Error(`Monnify API error and order not found: ${monnifyError.message}`);
     }
 
-    await this.orderService.updateOrder(order.id, {
-      monnifyTransactionReference: details.transactionReference,
-    });
+    let order: Order;
+    try {
+      order = await this.getOrderByPaymentReference(details.paymentReference);
+    } catch (orderError) {
+      try {
+        order = await this.getOrderByMonnifyTransactionReference(
+          details.transactionReference
+        );
+      } catch (monnifyOrderError) {
+        throw new Error(
+          `Order not found for paymentReference ${details.paymentReference} or transactionReference ${details.transactionReference}`
+        );
+      }
+    }
+
+    console.log(`Found order ${order.id} for payment reference ${details.paymentReference}`);
+
+    if (order.monnifyTransactionReference !== details.transactionReference) {
+      await this.orderService.updateOrder(order.id, {
+        monnifyTransactionReference: details.transactionReference,
+      });
+    }
 
     if (order.paymentStatus === 'paid') {
+      console.log(`Order ${order.id} already marked as paid`);
       return;
     }
 
     const normalized = this.normalizeMonnifyStatus(details.paymentStatus);
+    console.log(`Normalized status for ${reference}: ${normalized}`);
 
     if (normalized === 'SUCCESS') {
+      console.log(`Updating order ${order.id} to PAID status`);
       await this.orderService.updatePaymentStatus(order.id, 'paid');
       await this.orderService.updateOrderStatus(order.id, 'purchased');
       await this.orderService.decrementStockForOrder(order.id);
+      console.log(`Order ${order.id} marked as paid, stock decremented`);
     } else if (normalized === 'FAIL') {
+      console.log(`Updating order ${order.id} to FAILED status`);
       await this.orderService.updatePaymentStatus(order.id, 'failed');
+    } else {
+      console.log(`Payment status still PENDING for order ${order.id}`);
     }
   }
 
@@ -351,10 +387,30 @@ export class PaymentService {
   }
 
   async cancelPayment(reference: string): Promise<void> {
-    const order = await this.orderService.getOrderByPaymentReference(reference);
+    const order = await this.getOrderByPaymentReference(reference);
     if (order) {
       await this.orderService.updatePaymentStatus(order.id, 'failed');
     }
+  }
+
+  async getOrderByPaymentReference(paymentReference: string): Promise<Order> {
+    const order = await this.orderService.getOrderByPaymentReference(paymentReference);
+    if (!order) {
+      throw new Error('Order not found for payment reference');
+    }
+    return order;
+  }
+
+  async getOrderByMonnifyTransactionReference(
+    monnifyTransactionReference: string
+  ): Promise<Order> {
+    const order = await this.orderService.getOrderByMonnifyTransactionReference(
+      monnifyTransactionReference
+    );
+    if (!order) {
+      throw new Error('Order not found for Monnify transaction reference');
+    }
+    return order;
   }
 
   async initiateCashierPayment(orderId: string): Promise<{

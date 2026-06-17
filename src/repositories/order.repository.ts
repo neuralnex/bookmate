@@ -58,5 +58,21 @@ export class OrderRepository {
       throw new Error('Order not found');
     }
   }
+
+  async findByPaymentReference(paymentReference: string): Promise<Order | null> {
+    return this.repository.findOne({
+      where: { paymentReference },
+      relations: ['student', 'orderItems', 'orderItems.book'],
+    });
+  }
+
+  async findByMonnifyTransactionReference(
+    monnifyTransactionReference: string
+  ): Promise<Order | null> {
+    return this.repository.findOne({
+      where: { monnifyTransactionReference },
+      relations: ['student', 'orderItems', 'orderItems.book'],
+    });
+  }
 }
 
