@@ -12,6 +12,35 @@ export class BookService {
     return this.bookRepository.findAll();
   }
 
+  async getAllBooksPaginated(
+    page: number = 1,
+    limit: number = 20,
+    options: {
+      category?: string;
+      search?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      inStock?: boolean;
+      sortBy?: 'price' | 'title' | 'createdAt' | 'author';
+      sortOrder?: 'ASC' | 'DESC';
+    } = {}
+  ): Promise<{ books: Book[]; total: number; page: number; limit: number; totalPages: number }> {
+    // Validate pagination parameters
+    page = Math.max(1, Math.floor(page));
+    limit = Math.min(100, Math.max(1, Math.floor(limit))); // Max 100 per page
+
+    const { books, total } = await this.bookRepository.findAllPaginated(page, limit, options);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      books,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
   async getBookById(id: string): Promise<Book> {
     const book = await this.bookRepository.findById(id);
     if (!book) {

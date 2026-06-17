@@ -95,6 +95,62 @@ export class OrderService {
     return this.orderRepository.findAll();
   }
 
+  async getAllOrdersPaginated(
+    page: number = 1,
+    limit: number = 20,
+    options: {
+      status?: OrderStatus;
+      paymentStatus?: PaymentStatus;
+      sortBy?: 'createdAt' | 'totalAmount';
+      sortOrder?: 'ASC' | 'DESC';
+    } = {}
+  ): Promise<{ orders: Order[]; total: number; page: number; limit: number; totalPages: number }> {
+    page = Math.max(1, Math.floor(page));
+    limit = Math.min(100, Math.max(1, Math.floor(limit)));
+
+    const { orders, total } = await this.orderRepository.findAllPaginated(page, limit, options);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      orders,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
+  async getOrdersByStudentPaginated(
+    studentId: string,
+    page: number = 1,
+    limit: number = 20,
+    options: {
+      status?: OrderStatus;
+      paymentStatus?: PaymentStatus;
+      sortBy?: 'createdAt' | 'totalAmount';
+      sortOrder?: 'ASC' | 'DESC';
+    } = {}
+  ): Promise<{ orders: Order[]; total: number; page: number; limit: number; totalPages: number }> {
+    page = Math.max(1, Math.floor(page));
+    limit = Math.min(100, Math.max(1, Math.floor(limit)));
+
+    const { orders, total } = await this.orderRepository.findByStudentIdPaginated(
+      studentId,
+      page,
+      limit,
+      options
+    );
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      orders,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
   async getOrderById(id: string): Promise<Order> {
     const order = await this.orderRepository.findById(id);
     if (!order) {

@@ -12,13 +12,104 @@ const bookController = new BookController();
  * @swagger
  * /books:
  *   get:
- *     summary: Get all books
+ *     summary: Get all books with pagination, filtering, and sorting
  *     tags: [Books]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [Textbook, Manual, Guide, Past Paper]
+ *         description: Filter by book category
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search books by title, author, or classFormLevel
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *         description: Minimum price filter
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *         description: Maximum price filter
+ *       - in: query
+ *         name: inStock
+ *         schema:
+ *           type: boolean
+ *         description: Filter by stock availability
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [price, title, createdAt, author]
+ *           default: createdAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
+ *         description: Sort order
  *     responses:
  *       200:
- *         description: List of books
+ *         description: Paginated list of books
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Books retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     books:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Book'
+ *                     total:
+ *                       type: integer
+ *                       example: 100
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
  */
-router.get('/', bookController.getAllBooks);
+router.get('/', bookController.getAllBooksPaginated);
+
+// Keep old endpoint for backward compatibility
+router.get('/all', bookController.getAllBooks);
 
 /**
  * @swagger

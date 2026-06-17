@@ -16,12 +16,110 @@ export class OrderRepository {
     });
   }
 
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 20,
+    options: {
+      studentId?: string;
+      status?: OrderStatus;
+      paymentStatus?: PaymentStatus;
+      sortBy?: 'createdAt' | 'totalAmount';
+      sortOrder?: 'ASC' | 'DESC';
+    } = {}
+  ): Promise<{ orders: Order[]; total: number }> {
+    const { studentId, status, paymentStatus, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
+    
+    const queryBuilder = this.repository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.student', 'student')
+      .leftJoinAndSelect('order.orderItems', 'orderItems')
+      .leftJoinAndSelect('orderItems.book', 'book')
+      .where('order.id IS NOT NULL');
+
+    // Filter by student (for user's own orders)
+    if (studentId) {
+      queryBuilder.andWhere('order.studentId = :studentId', { studentId });
+    }
+
+    // Filter by order status
+    if (status) {
+      queryBuilder.andWhere('order.orderStatus = :status', { status });
+    }
+
+    // Filter by payment status
+    if (paymentStatus) {
+      queryBuilder.andWhere('order.paymentStatus = :paymentStatus', { paymentStatus });
+    }
+
+    // Sort
+    const validSortColumns: Record<string, string> = {
+      createdAt: 'order.createdAt',
+      totalAmount: 'order.totalAmount',
+    };
+    const sortField = validSortColumns[sortBy] || 'order.createdAt';
+    queryBuilder.orderBy(sortField, sortOrder);
+
+    // Pagination
+    const [orders, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { orders, total };
+  }
+
   async findByStudentId(studentId: string): Promise<Order[]> {
     return this.repository.find({
       where: { studentId },
       relations: ['orderItems', 'orderItems.book'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async findByStudentIdPaginated(
+    studentId: string,
+    page: number = 1,
+    limit: number = 20,
+    options: {
+      status?: OrderStatus;
+      paymentStatus?: PaymentStatus;
+      sortBy?: 'createdAt' | 'totalAmount';
+      sortOrder?: 'ASC' | 'DESC';
+    } = {}
+  ): Promise<{ orders: Order[]; total: number }> {
+    const { status, paymentStatus, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
+    
+    const queryBuilder = this.repository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.orderItems', 'orderItems')
+      .leftJoinAndSelect('orderItems.book', 'book')
+      .where('order.studentId = :studentId', { studentId });
+
+    // Filter by order status
+    if (status) {
+      queryBuilder.andWhere('order.orderStatus = :status', { status });
+    }
+
+    // Filter by payment status
+    if (paymentStatus) {
+      queryBuilder.andWhere('order.paymentStatus = :paymentStatus', { paymentStatus });
+    }
+
+    // Sort
+    const validSortColumns: Record<string, string> = {
+      createdAt: 'order.createdAt',
+      totalAmount: 'order.totalAmount',
+    };
+    const sortField = validSortColumns[sortBy] || 'order.createdAt';
+    queryBuilder.orderBy(sortField, sortOrder);
+
+    // Pagination
+    const [orders, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { orders, total };
   }
 
   async findById(id: string): Promise<Order | null> {

@@ -121,3 +121,52 @@ export const ipWhitelistMiddleware = (allowedIPs: string[]) => {
   };
 };
 
+// Performance monitoring middleware
+export const performanceMonitorMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const start = process.hrtime.bigint();
+  const requestId = req.headers['x-request-id'] || `req-${Date.now()}`;
+  const method = req.method;
+  const path = req.originalUrl;
+
+  res.on('finish', () => {
+    const end = process.hrtime.bigint();
+    const durationMs = Number(end - start) / 1_000_000;
+    
+    // Add response time header
+    res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+    
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      requestId,
+      method,
+      path,
+      status: res.statusCode,
+      durationMs: durationMs.toFixed(2),
+      ip: req.ip,
+      userAgent: req.get('User-Agent')?.substring(0, 100),
+    }));
+  });
+
+  next();
+};
+
+// Slow request logging
+export const slowRequestMiddleware = (threshold: number = 1000) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const start = Date.now();
+    
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      if (duration >= threshold) {
+        console.warn(`Slow request: ${req.method} ${req.originalUrl} took ${duration}ms`);
+      }
+    });
+    
+    next();
+  };
+};
+

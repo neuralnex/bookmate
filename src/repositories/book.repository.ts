@@ -16,6 +16,73 @@ export class BookRepository {
     });
   }
 
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 20,
+    options: {
+      category?: string;
+      search?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      inStock?: boolean;
+      sortBy?: 'price' | 'title' | 'createdAt' | 'author';
+      sortOrder?: 'ASC' | 'DESC';
+    } = {}
+  ): Promise<{ books: Book[]; total: number }> {
+    const { category, search, minPrice, maxPrice, inStock, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
+    
+    const queryBuilder = this.repository
+      .createQueryBuilder('book')
+      .leftJoinAndSelect('book.createdBy', 'createdBy')
+      .where('book.id IS NOT NULL'); // Base condition
+
+    // Filter by category
+    if (category) {
+      queryBuilder.andWhere('book.category = :category', { category });
+    }
+
+    // Filter by search term (title, author, classFormLevel)
+    if (search) {
+      queryBuilder.andWhere(
+        '(book.title ILIKE :search OR book.author ILIKE :search OR book.classFormLevel ILIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    // Filter by price range
+    if (minPrice !== undefined) {
+      queryBuilder.andWhere('book.price >= :minPrice', { minPrice });
+    }
+    if (maxPrice !== undefined) {
+      queryBuilder.andWhere('book.price <= :maxPrice', { maxPrice });
+    }
+
+    // Filter by stock
+    if (inStock !== undefined) {
+      queryBuilder.andWhere('book.stock :operator 0', {
+        operator: inStock ? '>' : '<=',
+      });
+    }
+
+    // Sort
+    const validSortColumns: Record<string, string> = {
+      price: 'book.price',
+      title: 'book.title',
+      createdAt: 'book.createdAt',
+      author: 'book.author',
+    };
+    const sortField = validSortColumns[sortBy] || 'book.createdAt';
+    queryBuilder.orderBy(sortField, sortOrder);
+
+    // Pagination
+    const [books, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { books, total };
+  }
+
   async findById(id: string): Promise<Book | null> {
     return this.repository.findOne({
       where: { id },

@@ -10,17 +10,92 @@ const orderController = new OrderController();
  * @swagger
  * /admin/orders:
  *   get:
- *     summary: Get all orders (Admin only)
+ *     summary: Get all orders with pagination and filtering (Admin only)
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [processing, purchased, delivering, delivered]
+ *         description: Filter by order status
+ *       - in: query
+ *         name: paymentStatus
+ *         schema:
+ *           type: string
+ *           enum: [paid, pending, failed]
+ *         description: Filter by payment status
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, totalAmount]
+ *           default: createdAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
+ *         description: Sort order
  *     responses:
  *       200:
- *         description: List of all orders
+ *         description: Paginated list of all orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: All orders retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     orders:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Order'
+ *                     total:
+ *                       type: integer
+ *                       example: 500
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 25
  *       403:
  *         description: Admin access required
  */
-router.get('/orders', authMiddleware, adminMiddleware, orderController.getAllOrders);
+router.get('/orders', authMiddleware, adminMiddleware, orderController.getAllOrdersPaginated);
+
+// Keep old endpoint for backward compatibility
+router.get('/orders/all', authMiddleware, adminMiddleware, orderController.getAllOrders);
 
 /**
  * @swagger

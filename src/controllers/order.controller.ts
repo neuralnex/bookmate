@@ -35,8 +35,19 @@ export class OrderController {
         return;
       }
 
-      const orders = await this.orderService.getOrdersByStudent(req.user.userId);
-      sendSuccess(res, orders, 'Orders retrieved successfully');
+      const validatedData = orderPaginationSchema.parse(req.query);
+      const result = await this.orderService.getOrdersByStudentPaginated(
+        req.user.userId,
+        validatedData.page,
+        validatedData.limit,
+        {
+          status: validatedData.status,
+          paymentStatus: validatedData.paymentStatus,
+          sortBy: validatedData.sortBy,
+          sortOrder: validatedData.sortOrder,
+        }
+      );
+      sendSuccess(res, result, 'Orders retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -68,6 +79,25 @@ export class OrderController {
     try {
       const orders = await this.orderService.getAllOrders();
       sendSuccess(res, orders, 'All orders retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllOrdersPaginated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const validatedData = orderPaginationSchema.parse(req.query);
+      const result = await this.orderService.getAllOrdersPaginated(
+        validatedData.page,
+        validatedData.limit,
+        {
+          status: validatedData.status,
+          paymentStatus: validatedData.paymentStatus,
+          sortBy: validatedData.sortBy,
+          sortOrder: validatedData.sortOrder,
+        }
+      );
+      sendSuccess(res, result, 'All orders retrieved successfully');
     } catch (error) {
       next(error);
     }

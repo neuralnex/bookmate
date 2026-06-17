@@ -20,6 +20,28 @@ export class BookController {
     }
   };
 
+  getAllBooksPaginated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const validatedData = bookPaginationSchema.parse(req.query);
+      const result = await this.bookService.getAllBooksPaginated(
+        validatedData.page,
+        validatedData.limit,
+        {
+          category: validatedData.category,
+          search: validatedData.search,
+          minPrice: validatedData.minPrice,
+          maxPrice: validatedData.maxPrice,
+          inStock: validatedData.inStock,
+          sortBy: validatedData.sortBy,
+          sortOrder: validatedData.sortOrder,
+        }
+      );
+      sendSuccess(res, result, 'Books retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getBookById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;

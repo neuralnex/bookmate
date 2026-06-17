@@ -87,3 +87,26 @@ export const verifyPaymentSchema = z.object({
   status: z.enum(['success', 'failed']),
 });
 
+// Pagination validators
+export const paginationSchema = z.object({
+  page: z.number().int().positive().optional().default(1),
+  limit: z.number().int().positive().max(100).optional().default(20),
+});
+
+export const bookPaginationSchema = paginationSchema.extend({
+  category: z.enum(['Textbook', 'Manual', 'Guide', 'Past Paper']).optional(),
+  search: z.string().min(1).optional(),
+  minPrice: z.number().positive().optional(),
+  maxPrice: z.number().positive().optional(),
+  inStock: z.boolean().optional(),
+  sortBy: z.enum(['price', 'title', 'createdAt', 'author']).optional().default('createdAt'),
+  sortOrder: z.enum(['ASC', 'DESC']).optional().default('DESC'),
+});
+
+export const orderPaginationSchema = paginationSchema.extend({
+  status: z.enum(['processing', 'purchased', 'delivering', 'delivered']).optional(),
+  paymentStatus: z.enum(['paid', 'pending', 'failed']).optional(),
+  sortBy: z.enum(['createdAt', 'totalAmount']).optional().default('createdAt'),
+  sortOrder: z.enum(['ASC', 'DESC']).optional().default('DESC'),
+});
+
