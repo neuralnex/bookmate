@@ -132,5 +132,74 @@ router.get('/orders/all', authMiddleware, adminMiddleware, orderController.getAl
  */
 router.put('/orders/:id/status', authMiddleware, adminMiddleware, orderController.updateOrderStatus);
 
+/**
+ * @swagger
+ * /admin/stats:
+ *   get:
+ *     summary: Get admin dashboard statistics (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin stats retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Admin stats retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalOrders:
+ *                       type: integer
+ *                       example: 100
+ *                     totalRevenue:
+ *                       type: number
+ *                       example: 500000
+ *                     totalBooksSold:
+ *                       type: integer
+ *                       example: 500
+ *                     ordersByStatus:
+ *                       type: object
+ *                       example: {"processing": 10, "purchased": 20, "delivering": 30, "delivered": 40}
+ *                     ordersByPaymentStatus:
+ *                       type: object
+ *                       example: {"paid": 70, "pending": 20, "failed": 10}
+ *                     dailyRevenue:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           date:
+ *                             type: string
+ *                             example: "2024-01-15"
+ *                           revenue:
+ *                             type: number
+ *                             example: 50000
+ *                     topSellingBooks:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           bookId:
+ *                             type: string
+ *                           title:
+ *                             type: string
+ *                           author:
+ *                             type: string
+ *                           quantity:
+ *                             type: integer
+ *       403:
+ *         description: Admin access required
+ */
+router.get('/stats', authMiddleware, adminMiddleware, orderController.getAdminStats);
+
 export default router;
 

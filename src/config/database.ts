@@ -26,10 +26,8 @@ export const AppDataSource = new DataSource({
   migrations: [path.join(__dirname, '..', 'migrations', `*.${migrationExt}`)],
   subscribers: [],
   // Connection pooling for better performance
-  poolSize: 10,
-  maxPoolSize: 20,
+  poolSize: 20,
   connectTimeoutMS: 5000,
-  idleTimeoutMS: 30000,
   ...(needsSSL && {
     ssl: {
       rejectUnauthorized: false,

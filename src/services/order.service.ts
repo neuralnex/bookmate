@@ -214,22 +214,6 @@ export class OrderService {
     }
   }
 
-  async getOrderByPaymentReference(paymentReference: string): Promise<Order> {
-    const order = await this.orderRepository.findByPaymentReference(paymentReference);
-    if (!order) {
-      throw new Error('Order not found');
-    }
-    return order;
-  }
-
-  async updateOrder(id: string, orderData: Partial<Order>): Promise<Order> {
-    const order = await this.orderRepository.findById(id);
-    if (!order) {
-      throw new Error('Order not found');
-    }
-    return this.orderRepository.update(id, orderData);
-  }
-
   async updateOrder(id: string, orderData: Partial<Order>): Promise<Order> {
     const order = await this.orderRepository.findById(id);
     if (!order) {
@@ -277,6 +261,109 @@ export class OrderService {
     
     // Return the order before deletion for response
     return order;
+  }
+
+  async getAdminStats(): Promise<{
+    totalOrders: number;
+    totalRevenue: number;
+    totalBooksSold: number;
+    ordersByStatus: Record<OrderStatus, number>;
+    ordersByPaymentStatus: Record<PaymentStatus, number>;
+    dailyRevenue: Array<{ date: string; revenue: number }>;
+    topSellingBooks: Array<{ bookId: string; title: string; author: string; quantity: number }>;
+  }> {
+    const orders = await this.orderRepository.findAll();
+    
+    // Calculate basic stats
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+    const totalBooksSold = orders.reduce((sum, order) => 
+      sum + order.orderItems.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
+    );
+
+    // Orders by status
+    const ordersByStatus: Record<OrderStatus, number> = {
+      processing: 0,
+      purchased: 0,
+      delivering: 0,
+      delivered: 0,
+    };
+    
+    orders.forEach(order => {
+      ordersByStatus[order.orderStatus] = (ordersByStatus[order.orderStatus] || 0) + 1;
+    });
+
+    // Orders by payment status
+    const ordersByPaymentStatus: Record<PaymentStatus, number> = {
+      paid: 0,
+      pending: 0,
+      failed: 0,
+    };
+    
+    orders.forEach(order => {
+      ordersByPaymentStatus[order.paymentStatus] = (ordersByPaymentStatus[order.paymentStatus] || 0) + 1;
+    });
+
+    // Daily revenue (last 7 days)
+    const dailyRevenue: Array<{ date: string; revenue: number }> = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayRevenue = orders
+        .filter(order => {
+          const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+          return orderDate === dateStr;
+        })
+        .reduce((sum, order) => sum + Number(order.totalAmount), 0);
+      
+      dailyRevenue.push({
+        date: dateStr,
+        revenue: dayRevenue,
+      });
+    }
+
+    // Top selling books
+    const bookSales: Record<string, { quantity: number; title: string; author: string }> = {};
+    
+    for (const order of orders) {
+      for (const item of order.orderItems) {
+        const book = await this.bookRepository.findById(item.bookId);
+        if (book) {
+          if (!bookSales[item.bookId]) {
+            bookSales[item.bookId] = {
+              quantity: 0,
+              title: book.title,
+              author: book.author,
+            };
+          }
+          bookSales[item.bookId].quantity += item.quantity;
+        }
+      }
+    }
+
+    const topSellingBooks = Object.entries(bookSales)
+      .map(([bookId, data]) => ({
+        bookId,
+        title: data.title,
+        author: data.author,
+        quantity: data.quantity,
+      }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalBooksSold,
+      ordersByStatus,
+      ordersByPaymentStatus,
+      dailyRevenue,
+      topSellingBooks,
+    };
   }
 }
 

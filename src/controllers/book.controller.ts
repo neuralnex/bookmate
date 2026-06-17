@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { BookService } from '../services/book.service';
 import { sendSuccess, sendError } from '../utils/response';
-import { createBookSchema, updateBookSchema } from '../utils/validators';
+import { createBookSchema, updateBookSchema, bookPaginationSchema } from '../utils/validators';
 import { fileToBase64 } from '../utils/fileUpload';
 
 export class BookController {

@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
 import { Order } from '../entities/Order';
+import { OrderStatus, PaymentStatus } from '../entities/Order';
 
 export class OrderRepository {
   private repository: Repository<Order>;
@@ -155,13 +156,6 @@ export class OrderRepository {
     if (result.affected === 0) {
       throw new Error('Order not found');
     }
-  }
-
-  async findByPaymentReference(paymentReference: string): Promise<Order | null> {
-    return this.repository.findOne({
-      where: { paymentReference },
-      relations: ['student', 'orderItems', 'orderItems.book'],
-    });
   }
 
   async findByMonnifyTransactionReference(

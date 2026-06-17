@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { OrderService } from '../services/order.service';
 import { sendSuccess, sendError } from '../utils/response';
-import { createOrderSchema, updateOrderStatusSchema } from '../utils/validators';
+import { createOrderSchema, updateOrderStatusSchema, orderPaginationSchema } from '../utils/validators';
 
 export class OrderController {
   private orderService: OrderService;
@@ -125,6 +125,15 @@ export class OrderController {
       const userId = req.user.userId;
       const order = await this.orderService.cancelOrder(id, userId);
       sendSuccess(res, order, 'Order cancelled successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAdminStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await this.orderService.getAdminStats();
+      sendSuccess(res, stats, 'Admin stats retrieved successfully');
     } catch (error) {
       next(error);
     }

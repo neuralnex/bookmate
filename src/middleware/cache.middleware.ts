@@ -76,7 +76,7 @@ export const cacheMiddleware = (options: {
 
   const getCacheKey = getKey || defaultKey;
 
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, res: Response, next: NextFunction): any => {
     // Skip if explicitly requested
     if (skip && skip(req)) {
       return next();

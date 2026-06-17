@@ -3,8 +3,9 @@ import {
   MonnifyService,
   MonnifyPaymentMethodKind,
   MonnifyInitTransactionBody,
+  MonnifyTransactionDetails,
 } from './monnify.service';
-import { PaymentStatus } from '../entities/Order';
+import { Order, PaymentStatus } from '../entities/Order';
 import { UserRepository } from '../repositories/user.repository';
 import { config } from '../config/env';
 
@@ -319,7 +320,8 @@ export class PaymentService {
         console.log(`Order ${order.id} already marked as paid, skipping sync`);
         return;
       }
-      throw new Error(`Monnify API error and order not found: ${monnifyError.message}`);
+      const errorMessage = monnifyError instanceof Error ? monnifyError.message : String(monnifyError);
+      throw new Error(`Monnify API error and order not found: ${errorMessage}`);
     }
 
     let order: Order;
@@ -391,6 +393,10 @@ export class PaymentService {
     if (order) {
       await this.orderService.updatePaymentStatus(order.id, 'failed');
     }
+  }
+
+  async getOrderById(orderId: string): Promise<Order> {
+    return this.orderService.getOrderById(orderId);
   }
 
   async getOrderByPaymentReference(paymentReference: string): Promise<Order> {
