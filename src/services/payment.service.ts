@@ -381,6 +381,14 @@ export class PaymentService {
     if (norm === 'SUCCESS') paymentUi = 'paid';
     else if (norm === 'FAIL') paymentUi = 'failed';
 
+    // Sync the payment status to the order in database
+    try {
+      await this.syncPaymentFromMonnifyReference(reference);
+    } catch (syncError) {
+      console.error(`Failed to sync payment status for reference ${reference}:`, syncError);
+      // Continue and return the status anyway - the sync might succeed later
+    }
+
     return {
       status: paymentUi,
       amount: Number.parseFloat(String(details.amountPaid || '0')) || 0,

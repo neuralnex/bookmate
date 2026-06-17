@@ -304,44 +304,44 @@ export class OrderService {
       ordersByPaymentStatus[order.paymentStatus] = (ordersByPaymentStatus[order.paymentStatus] || 0) + 1;
     });
 
-    // Daily revenue (last 7 days)
-    const dailyRevenue: Array<{ date: string; revenue: number }> = [];
+    // Daily revenue (last 7 days) - optimized with single pass
+    const dailyRevenueMap: Record<string, number> = {};
     const today = new Date();
     
+    // Pre-compute date strings for last 7 days
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      
-      const dayRevenue = orders
-        .filter(order => {
-          const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
-          return orderDate === dateStr;
-        })
-        .reduce((sum, order) => sum + Number(order.totalAmount), 0);
-      
-      dailyRevenue.push({
-        date: dateStr,
-        revenue: dayRevenue,
-      });
+      dailyRevenueMap[dateStr] = 0;
     }
+    
+    // Single pass through orders to compute revenue per day
+    for (const order of orders) {
+      const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+      if (dailyRevenueMap[orderDate] !== undefined) {
+        dailyRevenueMap[orderDate] += Number(order.totalAmount);
+      }
+    }
+    
+    const dailyRevenue = Object.entries(dailyRevenueMap)
+      .map(([date, revenue]) => ({ date, revenue }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Top selling books
+    // Top selling books - optimized to avoid N+1 queries
     const bookSales: Record<string, { quantity: number; title: string; author: string }> = {};
     
     for (const order of orders) {
       for (const item of order.orderItems) {
-        const book = await this.bookRepository.findById(item.bookId);
-        if (book) {
-          if (!bookSales[item.bookId]) {
-            bookSales[item.bookId] = {
-              quantity: 0,
-              title: book.title,
-              author: book.author,
-            };
-          }
-          bookSales[item.bookId].quantity += item.quantity;
+        const bookId = item.bookId;
+        if (!bookSales[bookId]) {
+          bookSales[bookId] = {
+            quantity: 0,
+            title: item.book?.title || `Book ${bookId.slice(0, 8)}`,
+            author: item.book?.author || 'Unknown',
+          };
         }
+        bookSales[bookId].quantity += item.quantity;
       }
     }
 
