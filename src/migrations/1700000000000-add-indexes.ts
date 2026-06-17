@@ -10,29 +10,28 @@ export class AddIndexes1700000000000 implements MigrationInterface {
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_title ON books(title)`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_price ON books(price)`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_stock ON books(stock)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(createdAt)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_created_by ON books(createdById)`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_created_at ON books("createdAt")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_books_created_by ON books("createdById")`);
 
     // Add indexes for Orders table
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_student_id ON orders(studentId)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(paymentStatus)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_order_status ON orders(orderStatus)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_delivery_method ON orders(deliveryMethod)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(createdAt)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_total_amount ON orders(totalAmount)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_payment_reference ON orders(paymentReference)`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_student_id ON orders("studentId")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders("paymentStatus")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_order_status ON orders("orderStatus")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_delivery_method ON orders("deliveryMethod")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders("createdAt")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_total_amount ON orders("totalAmount")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_payment_reference ON orders("paymentReference")`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_orders_monnify_transaction_reference ON orders(monnify_transaction_reference)`);
 
     // Add indexes for Users table
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_users_reg_number ON users(regNumber)`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_users_reg_number ON users("regNumber")`);
     await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(createdAt)`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_users_created_at ON users("createdAt")`);
 
     // Add indexes for OrderItems table
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_order_items_book_id ON order_items(bookId)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(orderId)`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_order_items_created_at ON order_items(createdAt)`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_order_items_book_id ON order_items("bookId")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items("orderId")`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -64,6 +63,5 @@ export class AddIndexes1700000000000 implements MigrationInterface {
     // Drop indexes for OrderItems table
     await queryRunner.query(`DROP INDEX IF EXISTS idx_order_items_book_id`);
     await queryRunner.query(`DROP INDEX IF EXISTS idx_order_items_order_id`);
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_order_items_created_at`);
   }
 }
