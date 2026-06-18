@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address').transform((val) => val.toLowerCase()),
   regNumber: z.string().length(11, 'Registration number must be exactly 11 digits').regex(/^\d+$/, 'Registration number must contain only digits'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   role: z.enum(['student', 'admin']).optional().default('student'),
@@ -10,7 +10,9 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  emailOrRegNumber: z.string().min(1, 'Email or registration number is required'),
+  emailOrRegNumber: z.string().min(1, 'Email or registration number is required').transform((val) => 
+    val.includes('@') ? val.toLowerCase() : val
+  ),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -88,17 +90,18 @@ export const verifyPaymentSchema = z.object({
 });
 
 // Pagination validators
+// Query params are always strings, so we need to coerce them to numbers
 export const paginationSchema = z.object({
-  page: z.number().int().positive().optional().default(1),
-  limit: z.number().int().positive().max(100).optional().default(20),
+  page: z.coerce.number().int().positive().optional().default(1),
+  limit: z.coerce.number().int().positive().max(100).optional().default(20),
 });
 
 export const bookPaginationSchema = paginationSchema.extend({
   category: z.enum(['Textbook', 'Manual', 'Guide', 'Past Paper']).optional(),
   search: z.string().min(1).optional(),
-  minPrice: z.number().positive().optional(),
-  maxPrice: z.number().positive().optional(),
-  inStock: z.boolean().optional(),
+  minPrice: z.coerce.number().positive().optional(),
+  maxPrice: z.coerce.number().positive().optional(),
+  inStock: z.coerce.boolean().optional(),
   sortBy: z.enum(['price', 'title', 'createdAt', 'author']).optional().default('createdAt'),
   sortOrder: z.enum(['ASC', 'DESC']).optional().default('DESC'),
 });

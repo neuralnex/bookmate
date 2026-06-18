@@ -10,7 +10,10 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.repository.findOne({ where: { email } });
+    // Make email lookup case-insensitive by converting to lowercase
+    return this.repository.findOne({ 
+      where: { email: email.toLowerCase() } 
+    });
   }
 
   async findByRegNumber(regNumber: string): Promise<User | null> {
@@ -33,12 +36,22 @@ export class UserRepository {
   }
 
   async create(userData: Partial<User>): Promise<User> {
-    const user = this.repository.create(userData);
+    // Normalize email to lowercase to ensure case-insensitive lookups
+    const normalizedData = { ...userData };
+    if (normalizedData.email) {
+      normalizedData.email = normalizedData.email.toLowerCase();
+    }
+    const user = this.repository.create(normalizedData);
     return this.repository.save(user);
   }
 
   async update(id: string, userData: Partial<User>): Promise<User> {
-    await this.repository.update(id, userData);
+    // Normalize email to lowercase if being updated
+    const normalizedData = { ...userData };
+    if (normalizedData.email) {
+      normalizedData.email = normalizedData.email.toLowerCase();
+    }
+    await this.repository.update(id, normalizedData);
     const updatedUser = await this.findById(id);
     if (!updatedUser) {
       throw new Error('User not found');
