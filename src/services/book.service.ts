@@ -12,6 +12,11 @@ export class BookService {
     return this.bookRepository.findAll();
   }
 
+  async getAllBooksSimple(): Promise<Book[]> {
+    // For mobile app - returns books without relations to avoid type mismatches
+    return this.bookRepository.findAllWithoutRelations();
+  }
+
   async getAllBooksPaginated(
     page: number = 1,
     limit: number = 20,

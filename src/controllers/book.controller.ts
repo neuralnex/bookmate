@@ -20,6 +20,15 @@ export class BookController {
     }
   };
 
+  getAllBooksSimple = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const books = await this.bookService.getAllBooksSimple();
+      sendSuccess(res, books, 'Books retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getAllBooksPaginated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const validatedData = bookPaginationSchema.parse(req.query);

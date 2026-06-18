@@ -111,6 +111,9 @@ router.get('/', bookController.getAllBooksPaginated);
 // Keep old endpoint for backward compatibility
 router.get('/all', bookController.getAllBooks);
 
+// Mobile endpoint - returns books without relations
+router.get('/all-simple', bookController.getAllBooksSimple);
+
 /**
  * @swagger
  * /books/{id}:

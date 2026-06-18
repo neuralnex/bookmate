@@ -16,6 +16,12 @@ export class BookRepository {
     });
   }
 
+  async findAllWithoutRelations(): Promise<Book[]> {
+    return this.repository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findAllPaginated(
     page: number = 1,
     limit: number = 20,
